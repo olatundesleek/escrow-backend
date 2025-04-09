@@ -1,14 +1,19 @@
 const express = require('express');
+const {register, login} = require('../controllers/authController');
+
 const router = express.Router();
-const authController = require('../controllers/authController');
 
-// Route for user registration
-router.post('/register', authController.register);
 
+//Route for user registration
+router.post('/register',register );
 // Route for user login
-router.post('/login', authController.login);
+router.post('/login',login )
 
 // Route for token verification
-router.get('/verify', authController.verifyToken);
+// router.get('/verify', authController.verifyToken);
+
 
 module.exports = router;
+
+
+

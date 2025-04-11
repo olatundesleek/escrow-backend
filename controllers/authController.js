@@ -5,7 +5,10 @@ const bcrypt = require('bcrypt');
 
 // Joi schemas
 const registerSchema = Joi.object({
+    firstname: Joi.string().min(3).max(30).required(),
+    lastname: Joi.string().min(3).max(30).required(),
     username: Joi.string().min(3).max(30).required(),
+    email: Joi.string().email().required(),
     password: Joi.string().min(6).required(),
 });
 
@@ -15,23 +18,23 @@ const loginSchema = Joi.object({
 });
 
 // Register a new user
-exports.register = async (req, res) => {
+const register = async (req, res) => {
     const { error } = registerSchema.validate(req.body);
     if (error) {
         return res.status(400).json({ message: 'Validation error', details: error.details });
     }
 
-    const { username, password } = req.body;
+    const { firstname, lastname, username, email, password } = req.body;
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await User.create({ username, password: hashedPassword });
+        const newUser = await User.create({ firstname, lastname, username, email, password: hashedPassword });
         
         const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: process.env.NODE_ENV === 'production',  // Make sure this check is for production
             sameSite: 'strict',
             maxAge: 3600000 // 1 hour in milliseconds
         });
@@ -43,7 +46,7 @@ exports.register = async (req, res) => {
 };
 
 // Login a user
-exports.login = async (req, res) => {
+const login = async (req, res) => {
     const { error } = loginSchema.validate(req.body);
     if (error) {
         return res.status(400).json({ message: 'Validation error', details: error.details });
@@ -54,7 +57,7 @@ exports.login = async (req, res) => {
     try {
         const user = await User.findOne({ username });
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: 'Invalid credentials' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -66,7 +69,7 @@ exports.login = async (req, res) => {
         
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: process.env.NODE_ENV === 'production',  // Make sure this check is for production
             sameSite: 'strict',
             maxAge: 3600000 // 1 hour in milliseconds
         });
@@ -77,31 +80,10 @@ exports.login = async (req, res) => {
     }
 };
 
-// Verify token
-exports.verifyToken = (req, res, next) => {
-    const token = req.cookies.token;
-
-    if (!token) {
-        return res.status(403).json({ message: 'No token provided' });
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if (err) {
-            return res.status(401).json({ message: 'Unauthorized' });
-        }
-        req.userId = decoded.id;
-        next();
-    });
-};
-
 // Logout user
-exports.logout = (req, res) => {
-    res.cookie('token', '', {
-        httpOnly: true,
-        expires: new Date(0),
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
-    });
-    
-    res.status(200).json({ message: 'Logged out successfully' });
+const logout = (req, res) => {
+    res.clearCookie("token"); // Remove the authentication cookie
+    res.json({ message: "Logged out successfully!" });
 };
+
+module.exports = { register, login, logout };

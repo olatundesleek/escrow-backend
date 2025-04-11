@@ -1,6 +1,9 @@
+
 const mongoose = require('mongoose');
-const app = require('./app')
+
 const PORT = process.env.PORT || 3000;
+const app = require('./app');
+
 
 
 
@@ -10,6 +13,7 @@ if (process.env.NODE_ENV !== "production") {
     const envFile = `.env.${process.env.NODE_ENV || "development"}`;
     require("dotenv").config({ path: envFile });
   }
+
 
 
 // Database connection

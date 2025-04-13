@@ -1,0 +1,89 @@
+const Escrow = require("../models/Escrow");
+const User = require("../models/User");
+async function createNewEscrow(
+  creatorId,
+  creatorRole,
+  counterpartyEmail,
+  amount,
+  description,
+  terms
+) {
+  console.log(
+    creatorId,
+    creatorRole,
+    counterpartyEmail,
+    amount,
+    description,
+    terms
+  );
+
+  if (creatorRole !== "buyer" && creatorRole !== "seller") {
+    throw new Error('Invalid creator role. Must be "buyer" or "seller".');
+  }
+  if (!terms || terms.length === 0) {
+    throw new Error("Escrow must include terms");
+  }
+
+  //  creatorId, creatorRole, counterpartyEmail, amount, description, terms;
+  const escrow = new Escrow({
+    creator: creatorId,
+    creatorRole,
+    counterpartyEmail,
+    amount,
+    description,
+    terms,
+    status: "pending",
+  });
+
+  await escrow.save();
+
+  return escrow;
+  // Send email to creator
+  //   await sendEmail({
+  //     to: creatorId, // Replace with creator's email via lookup if needed
+  //     subject: "Escrow Created",
+  //     text: `You have created an escrow as the ${creatorRole}. Waiting for counterparty to accept.`,
+  //   });
+
+  // Send invite email to counterparty
+  //   await sendEmail({
+  //     to: counterpartyEmail,
+  //     subject: "You’ve Been Invited to an Escrow",
+  //     text: `You’ve been invited to join an escrow. Click the link to accept.`,
+  //     // add link: `/accept-escrow/${escrow._id}`
+  //   });
+
+  //   return escrow;
+}
+
+async function acceptNewEscrow({ escrowId, userId }) {
+  const escrow = await Escrow.findById(escrowId);
+  if (!escrow) throw new Error("Escrow not found");
+  if (escrow.status === "active") throw new Error("Escrow already accepted");
+
+  const user = await User.findById(userId);
+  if (!user) throw new Error("User not found");
+
+  // Ensure the logged-in user's email matches the counterparty email in the escrow
+  if (user.email.toLowerCase() !== escrow.counterpartyEmail.toLowerCase()) {
+    throw new Error(
+      "Unauthorized: Your email does not match the counterparty email"
+    );
+  }
+
+  const oppositeRole = escrow.creatorRole === "buyer" ? "seller" : "buyer";
+
+  escrow.counterparty = userId;
+  escrow[escrow.creatorRole] = escrow.creator;
+  escrow[oppositeRole] = userId;
+  escrow.status = "active";
+
+  await escrow.save();
+
+  return escrow;
+}
+
+module.exports = {
+  createNewEscrow,
+  acceptNewEscrow,
+};

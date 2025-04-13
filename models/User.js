@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 // Define the address schema for better structure
 const addressSchema = new mongoose.Schema({
@@ -6,7 +6,7 @@ const addressSchema = new mongoose.Schema({
   city: { type: String, required: true },
   state: { type: String, required: true },
   postalCode: { type: String, required: true },
-  country: { type: String, required: true }
+  country: { type: String, required: true },
 });
 
 const userSchema = new mongoose.Schema({
@@ -16,13 +16,22 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
-  address: { type: addressSchema, required: false },  // Using addressSchema for detailed address
-  kyc: {
-    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-    documentUrl: String
+  status: {
+    type: String,
+    enum: ["inactive", "active", "suspended"],
+    default: "inactive",
   },
-  createdAt: { type: Date, default: Date.now }
+  address: { type: addressSchema, required: false }, // Using addressSchema for detailed address
+  kyc: {
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    documentUrl: String,
+  },
+  createdAt: { type: Date, default: Date.now },
 });
 
 // Export the User model
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

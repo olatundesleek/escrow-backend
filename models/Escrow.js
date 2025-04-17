@@ -14,6 +14,7 @@ const escrowSchema = new mongoose.Schema(
     buyer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     seller: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     amount: { type: Number, required: true },
+    terms: { type: [String], required: true },
     description: String,
     status: {
       type: String,
@@ -25,7 +26,7 @@ const escrowSchema = new mongoose.Schema(
       enum: ["unpaid", "paid"],
       default: "unpaid",
     },
-    terms: { type: [String], required: true },
+
     createdAt: {
       type: Date,
       default: Date.now,

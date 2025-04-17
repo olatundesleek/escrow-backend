@@ -1,5 +1,7 @@
 const nodemailer = require("nodemailer");
 const generateUserRegisterationEmail = require("./templates/userregisteration");
+const generateCreateEscrowEmail = require("./templates/newescrowcreated");
+const generateCounterpartyEscrowEmail = require("./templates/escrowtransaction");
 // const generatePasswordResetEmail = require("../emailtemplate/paswordresetemail");
 
 // const generatePasswordchangedEmail = require("../emailtemplate/passwordchanged");
@@ -71,8 +73,74 @@ async function sendUserRegisterationEmail(username, email, token) {
   }
 }
 
+async function sendCreateEscrowEmail(
+  creatorFirstName,
+  escrowId,
+  amount,
+  createdAt,
+  creatorRole,
+  counterpartyEmail,
+  description
+) {
+  try {
+    const subject = "Escrow Created";
+    const html = generateCreateEscrowEmail(
+      creatorFirstName,
+      escrowId,
+      amount,
+      createdAt,
+      creatorRole,
+      description
+    );
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: counterpartyEmail,
+      subject,
+      html,
+    });
+  } catch (error) {
+    console.error("Error sending escrow creation email:", error);
+  }
+}
+
+async function sendReceiveEscrowEmail(
+  creatorFirstName,
+  counterpartyFirstName,
+  escrowId,
+  amount,
+  createdAt,
+  creatorRole,
+  description,
+  terms,
+  counterpartyEmail
+) {
+  try {
+    const subject = "New Escrow Transaction Received";
+    const html = generateCounterpartyEscrowEmail(
+      creatorFirstName,
+      counterpartyFirstName,
+      escrowId,
+      amount,
+      createdAt,
+      creatorRole,
+      description,
+      terms
+    );
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: counterpartyEmail,
+      subject,
+      html,
+    });
+  } catch (error) {
+    console.error("Error sending escrow Counterparty Escrow email:", error);
+  }
+}
+
 module.exports = {
+  sendCreateEscrowEmail,
   //   sendPasswordResetEmail,
   sendUserRegisterationEmail,
+  sendReceiveEscrowEmail,
   //   sendPasswordChangedEmail,
 };

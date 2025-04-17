@@ -62,10 +62,10 @@ const acceptEscrow = async (req, res) => {
 
   try {
     const userId = req.userId;
-    const { escrowId } = req.body;
+    const escrowId = req.body.escrowId;
 
     // Create a new escrow using the validated data
-    const escrow = await acceptEscrow(userId, escrowId);
+    const escrow = await acceptNewEscrow(userId, escrowId);
 
     res
       .status(201)
@@ -101,7 +101,10 @@ const updateEscrow = async (req, res) => {
       .status(200)
       .json({ message: "Escrow updated successfully", escrow: updatedEscrow });
   } catch (error) {
-    res.status(500).json({ message: "Error updating escrow", error });
+    res.status(500).json({
+      message: "Error updating escrow",
+      error: error.message || "Unknown error occurred",
+    });
   }
 };
 

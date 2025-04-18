@@ -2,7 +2,7 @@ const nodemailer = require("nodemailer");
 const generateUserRegisterationEmail = require("./templates/userregisteration");
 const generateCreateEscrowEmail = require("./templates/newescrowcreated");
 const generateCounterpartyEscrowEmail = require("./templates/escrowtransaction");
-// const generatePasswordResetEmail = require("../emailtemplate/paswordresetemail");
+const generatePasswordResetEmail = require("./templates/passwordreset");
 
 // const generatePasswordchangedEmail = require("../emailtemplate/passwordchanged");
 
@@ -28,10 +28,10 @@ const transporter = isProduction
       secure: false,
     });
 
-async function sendPasswordResetEmail(token, user, email) {
+async function sendPasswordResetEmail(token, firstname, email) {
   try {
     const subject = "Password-Reset";
-    const html = generatePasswordResetEmail(user, token);
+    const html = generatePasswordResetEmail(firstname, token);
     await transporter.sendMail({
       from: process.env.EMAIL, // Sender email (set in env)
       to: email,
@@ -139,7 +139,7 @@ async function sendReceiveEscrowEmail(
 
 module.exports = {
   sendCreateEscrowEmail,
-  //   sendPasswordResetEmail,
+  sendPasswordResetEmail,
   sendUserRegisterationEmail,
   sendReceiveEscrowEmail,
   //   sendPasswordChangedEmail,

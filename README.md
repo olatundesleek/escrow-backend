@@ -86,29 +86,364 @@ Ensure the following environment variables are set in your `.env` file:
 
 ### Authentication
 
-- `POST /api/auth/register` - Register a new user.
-- `POST /api/auth/login` - Login an existing user.
-- `POST /api/auth/logout` - Logout the current user.
-- `GET /api/auth/verify-email/:token` - Verify user email.
+#### Register a New User
+
+- **Endpoint**: `POST /api/auth/register`
+- **Request Body**:
+  ```json
+  {
+    "firstname": "John",
+    "lastname": "Doe",
+    "username": "johndoe",
+    "email": "johndoe@example.com",
+    "password": "password123"
+  }
+  ```
+- **Response**:
+  - Success (201):
+    ```json
+    {
+      "success": true,
+      "message": "User registered successfully. Verification email sent."
+    }
+    ```
+  - Error (400/409):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error or Email/Username already in use"
+    }
+    ```
+
+#### Login a User
+
+- **Endpoint**: `POST /api/auth/login`
+- **Request Body**:
+  ```json
+  {
+    "username": "johndoe",
+    "password": "password123"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Login successful"
+    }
+    ```
+  - Error (401/403):
+    ```json
+    {
+      "success": false,
+      "message": "Invalid credentials or account not verified"
+    }
+    ```
+
+#### Logout a User
+
+- **Endpoint**: `POST /api/auth/logout`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Logged out successfully"
+    }
+    ```
+
+#### Verify Email
+
+- **Endpoint**: `GET /api/auth/verify-email/:token`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Email verified successfully"
+    }
+    ```
+  - Error (400/404):
+    ```json
+    {
+      "success": false,
+      "message": "Invalid or expired verification token"
+    }
+    ```
+
+---
 
 ### Escrow
 
-- `POST /api/escrow` - Create a new escrow transaction.
-- `POST /api/acceptescrow` - Accept an escrow invitation.
-- `GET /api/escrow/:id` - Retrieve escrow details by ID.
-- `PUT /api/escrow/:id` - Update an existing escrow transaction.
+#### Create a New Escrow
+
+- **Endpoint**: `POST /api/escrow`
+- **Request Body**:
+  ```json
+  {
+    "creatorRole": "buyer",
+    "counterpartyEmail": "seller@example.com",
+    "amount": 5000,
+    "description": "Payment for services",
+    "terms": ["Deliver project files", "Provide support for 30 days"]
+  }
+  ```
+- **Response**:
+  - Success (201):
+    ```json
+    {
+      "message": "Escrow created successfully",
+      "escrow": {
+        "id": "12345",
+        "creatorRole": "buyer",
+        "amount": 5000,
+        "status": "pending"
+      }
+    }
+    ```
+  - Error (400/500):
+    ```json
+    {
+      "message": "Validation error or Internal server error"
+    }
+    ```
+
+#### Accept an Escrow
+
+- **Endpoint**: `POST /api/acceptescrow`
+- **Request Body**:
+  ```json
+  {
+    "escrowId": "12345"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Escrow accepted successfully",
+      "escrow": {
+        "id": "12345",
+        "status": "active"
+      }
+    }
+    ```
+  - Error (400/500):
+    ```json
+    {
+      "message": "Validation error or Internal server error"
+    }
+    ```
+
+#### Get Escrow Details
+
+- **Endpoint**: `GET /api/escrow/:id`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "escrow": {
+        "id": "12345",
+        "creatorRole": "buyer",
+        "amount": 5000,
+        "status": "active"
+      }
+    }
+    ```
+  - Error (404/500):
+    ```json
+    {
+      "message": "Escrow not found or Internal server error"
+    }
+    ```
+
+#### Update an Escrow
+
+- **Endpoint**: `PUT /api/escrow/:id`
+- **Request Body**:
+  ```json
+  {
+    "amount": 6000,
+    "status": "completed"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Escrow updated successfully",
+      "escrow": {
+        "id": "12345",
+        "amount": 6000,
+        "status": "completed"
+      }
+    }
+    ```
+  - Error (404/500):
+    ```json
+    {
+      "message": "Escrow not found or Internal server error"
+    }
+    ```
+
+---
 
 ### Payment
 
-- `POST /api/payment/initiate` - Initiate a payment.
-- `POST /api/payment/confirm` - Confirm a payment.
-- `GET /api/payment/status/:paymentId` - Check payment status.
+#### Initiate a Payment
+
+- **Endpoint**: `POST /api/payment/initiate`
+- **Request Body**:
+  ```json
+  {
+    "amount": 5000,
+    "currency": "USD",
+    "userId": "12345"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "paymentDetails": {
+        "id": "payment123",
+        "status": "pending"
+      }
+    }
+    ```
+  - Error (400/500):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error or Internal server error"
+    }
+    ```
+
+#### Confirm a Payment
+
+- **Endpoint**: `POST /api/payment/confirm`
+- **Request Body**:
+  ```json
+  {
+    "paymentId": "payment123"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "confirmation": {
+        "status": "success"
+      }
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Internal server error"
+    }
+    ```
+
+#### Check Payment Status
+
+- **Endpoint**: `GET /api/payment/status/:paymentId`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "status": "success"
+    }
+    ```
+  - Error (404/500):
+    ```json
+    {
+      "message": "Payment not found or Internal server error"
+    }
+    ```
+
+---
 
 ### Dispute
 
-- `POST /api/dispute/file` - File a new dispute.
-- `GET /api/dispute/:id` - Retrieve dispute details by ID.
-- `PUT /api/dispute/resolve/:id` - Resolve a dispute.
+#### File a Dispute
+
+- **Endpoint**: `POST /api/dispute/file`
+- **Request Body**:
+  ```json
+  {
+    "escrowId": "12345",
+    "reason": "The terms of the agreement were not fulfilled"
+  }
+  ```
+- **Response**:
+  - Success (201):
+    ```json
+    {
+      "message": "Dispute filed successfully",
+      "dispute": {
+        "id": "dispute123",
+        "status": "Pending"
+      }
+    }
+    ```
+  - Error (400/500):
+    ```json
+    {
+      "message": "Validation error or Internal server error"
+    }
+    ```
+
+#### Get Dispute Details
+
+- **Endpoint**: `GET /api/dispute/:id`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "dispute": {
+        "id": "dispute123",
+        "status": "Pending",
+        "reason": "The terms of the agreement were not fulfilled"
+      }
+    }
+    ```
+  - Error (404/500):
+    ```json
+    {
+      "message": "Dispute not found or Internal server error"
+    }
+    ```
+
+#### Resolve a Dispute
+
+- **Endpoint**: `PUT /api/dispute/resolve/:id`
+- **Request Body**:
+  ```json
+  {
+    "resolution": "Refund issued to buyer"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Dispute resolved successfully",
+      "dispute": {
+        "id": "dispute123",
+        "status": "Resolved"
+      }
+    }
+    ```
+  - Error (404/500):
+    ```json
+    {
+      "message": "Dispute not found or Internal server error"
+    }
+    ```
 
 ## Contributing
 

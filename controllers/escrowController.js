@@ -3,7 +3,7 @@ const Escrow = require("../models/Escrow");
 const {
   createNewEscrow,
   acceptNewEscrow,
-} = require("../services/escrowServices");
+} = require("../services/escrowServices.js");
 
 // Joi schemas
 const createEscrowSchema = Joi.object({

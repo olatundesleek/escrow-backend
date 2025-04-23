@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-const PORT = process.env.PORT || 3000;
 const app = require("./app");
 // Load environment variables based on the current NODE_ENV (default: development)
 
@@ -22,7 +21,7 @@ if (process.env.NODE_ENV !== "production") {
     console.log("MailDev is running on http://localhost:1080");
   });
 }
-
+const PORT = process.env.PORT || 3000;
 // Database connection
 mongoose
   .connect(process.env.MONGODB_URI, {

@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const MailDev = require("maildev");
 
 const PORT = process.env.PORT || 3000;
 const app = require("./app");
@@ -10,13 +9,19 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config({ path: envFile });
 }
 
-const maildev = new MailDev();
+// MailDev setup for testing emails
+if (process.env.NODE_ENV !== "production") {
+  const MailDev = require("maildev");
 
-maildev.listen();
+  const maildev = new MailDev({
+    smtp: 1025, // Local SMTP server
+    web: 1080, // Web UI for viewing emails
+  });
 
-maildev.on("new", function (email) {
-  // We got a new email!
-});
+  maildev.listen(() => {
+    console.log("MailDev is running on http://localhost:1080");
+  });
+}
 
 // Database connection
 mongoose

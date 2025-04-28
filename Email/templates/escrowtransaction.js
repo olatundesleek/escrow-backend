@@ -8,7 +8,7 @@ const generateCounterpartyEscrowEmail = (
   description,
   terms
 ) => {
-  const link = `${process.env.WEBLINK}escrow/${escrowId}`;
+  const link = `${process.env.WEBLINK}api/escrow/${escrowId}`;
   const userRoleDescription = creatorRole === "buyer" ? "seller" : "buyer";
   const counterpartyRoleDescription =
     creatorRole === "buyer" ? "buyer" : "seller";

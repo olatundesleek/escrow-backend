@@ -20,7 +20,7 @@ async function updateUser(userId, updatedData) {
     const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
       new: true,
       runValidators: true,
-    }).select("-password");
+    }).select("-password -role");
 
     if (!updatedUser) {
       return { success: false, message: "User not found or update failed" };

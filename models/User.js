@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-// Define the address schema for better structure
+// Define the address schema
 const addressSchema = new mongoose.Schema({
   street: { type: String, required: true },
   city: { type: String, required: true },
@@ -9,29 +9,53 @@ const addressSchema = new mongoose.Schema({
   country: { type: String, required: true },
 });
 
-const userSchema = new mongoose.Schema({
-  firstname: { type: String, required: true },
-  lastname: { type: String, required: true },
-  username: { type: String, required: true, unique: true },
-  email: { type: String, unique: true },
-  password: { type: String, required: true },
-  isVerified: { type: Boolean, default: false },
-  status: {
-    type: String,
-    enum: ["inactive", "active", "suspended"],
-    default: "inactive",
-  },
-  address: { type: addressSchema, required: false }, // Using addressSchema for detailed address
-  kyc: {
+// Define the user schema
+const userSchema = new mongoose.Schema(
+  {
+    firstname: { type: String, required: true },
+    lastname: { type: String, required: true },
+    username: { type: String, required: true, unique: true },
+    email: { type: String, unique: true },
+    password: { type: String, required: true },
+    isVerified: { type: Boolean, default: false },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
+      enum: ["inactive", "active", "suspended"],
+      default: "inactive",
     },
-    documentUrl: String,
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    address: { type: addressSchema, required: false },
+    kyc: {
+      status: {
+        type: String,
+        enum: ["unverified", "pending", "approved", "rejected"],
+        default: "unverified",
+      },
+      documentUrl: String,
+    },
+    createdAt: { type: Date, default: Date.now },
   },
-  createdAt: { type: Date, default: Date.now },
-});
+  {
+    toJSON: {
+      transform(doc, ret) {
+        delete ret.password;
+        delete ret.role;
+        return ret;
+      },
+    },
+    toObject: {
+      transform(doc, ret) {
+        delete ret.password;
+        delete ret.role;
+        return ret;
+      },
+    },
+  }
+);
 
 // Export the User model
 module.exports = mongoose.model("User", userSchema);

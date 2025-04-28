@@ -3,6 +3,7 @@ const Escrow = require("../models/Escrow");
 const {
   createNewEscrow,
   acceptNewEscrow,
+  getEscrowById,
 } = require("../services/escrowServices.js");
 
 // Joi schemas
@@ -17,6 +18,10 @@ const createEscrowSchema = Joi.object({
 const updateEscrowSchema = Joi.object({
   amount: Joi.number().positive().optional(),
   status: Joi.string().valid("pending", "completed", "disputed").optional(),
+});
+
+const getEscrowDetailsSchema = Joi.object({
+  id: Joi.string().required(), // Assuming ID is a string, adjust if using ObjectId
 });
 
 // Create a new escrow transaction
@@ -119,19 +124,26 @@ const updateEscrow = async (req, res) => {
 };
 
 // Get details of an escrow
+
 const getEscrowDetails = async (req, res) => {
+  const { error } = getEscrowDetailsSchema.validate(req.params);
+  if (error) {
+    return res.status(400).json({
+      message: "Validation error",
+      details: error.details.map((detail) => detail.message),
+    });
+  }
+
+  const escrowId = req.params.id;
+  const userId = req.userId;
+
   try {
-    const { escrowId } = req.params;
-    if (!escrowId) {
-      return res.status(400).json({ message: "escrowId is required" });
-    }
+    const escrow = await getEscrowById(escrowId, userId);
 
-    const escrow = await Escrow.findById(escrowId);
-    if (!escrow) {
-      return res.status(404).json({ message: "Escrow not found" });
-    }
-
-    return res.status(200).json({ escrow });
+    return res.status(200).json({
+      message: "Escrow details retrieved successfully",
+      escrow,
+    });
   } catch (err) {
     console.error("Get Escrow Details Error:", err);
     return res.status(500).json({

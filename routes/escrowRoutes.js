@@ -11,6 +11,8 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 
 // Route to create a new escrow
 router.post("/escrow", authMiddleware, createEscrow);
+
+// Route to accept an escrow
 router.post("/acceptescrow", authMiddleware, acceptEscrow);
 
 // Route to get escrow details by ID

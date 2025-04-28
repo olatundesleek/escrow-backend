@@ -1,4 +1,3 @@
-// models/Escrow.js
 const mongoose = require("mongoose");
 
 const escrowSchema = new mongoose.Schema(
@@ -16,6 +15,7 @@ const escrowSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     terms: { type: [String], required: true },
     description: String,
+
     status: {
       type: String,
       enum: ["pending", "active", "completed", "disputed"],
@@ -26,6 +26,9 @@ const escrowSchema = new mongoose.Schema(
       enum: ["unpaid", "paid"],
       default: "unpaid",
     },
+
+    chat: { type: mongoose.Schema.Types.ObjectId, ref: "Chat" }, //
+    chatActive: { type: Boolean, default: false }, //
 
     createdAt: {
       type: Date,
@@ -38,6 +41,8 @@ const escrowSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Update updatedAt automatically
 escrowSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();

@@ -8,6 +8,7 @@ app.use(cookieParser());
 
 const authRoutes = require("./routes/authRoutes");
 const escrowRoutes = require("./routes/escrowRoutes");
+const profileRoutes = require("./routes/profileRoutes");
 // const paymentRoutes = require('./routes/paymentRoutes');
 // const disputeRoutes = require('./routes/disputeRoutes');
 // const authMiddleware = require('./middleware/authMiddleware');
@@ -15,6 +16,7 @@ const escrowRoutes = require("./routes/escrowRoutes");
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api", escrowRoutes);
+app.use("/api", profileRoutes);
 // app.use('/api/payment', paymentRoutes);
 // app.use('/api/dispute', disputeRoutes);
 

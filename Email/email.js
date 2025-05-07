@@ -16,10 +16,12 @@ if (!isProduction) {
 // Create email transporter dynamically
 const transporter = isProduction
   ? nodemailer.createTransport({
-      service: "gmail",
+      host: 'smtp.resend.com',
+     secure: true,
+      port: 465,
       auth: {
-        user: process.env.GMAIL_USER, // Set in Vercel environment
-        pass: process.env.GMAIL_PASS, // Use an app password if needed
+        user: process.env.USER,
+        pass: process.env.PASS,
       },
     })
   : nodemailer.createTransport({

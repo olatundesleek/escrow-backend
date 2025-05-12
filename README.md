@@ -84,6 +84,168 @@ Ensure the following environment variables are set in your `.env` file:
 
 ## API Endpoints
 
+### Site Settings
+
+#### Get Site Settings
+
+- **Endpoint**: `GET /api/site/info`
+- **Description**: Fetch the current site settings.
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "siteName": "Escrow App",
+      "siteLogo": "https://example.com/logo.png",
+      "siteDescription": "A secure escrow service platform.",
+      "siteUrl": "https://example.com",
+      "siteEmail": "support@example.com",
+      "sitePhone": "+1234567890",
+      "siteAddress": "123 Main Street, City, Country",
+      "socialMediaLinks": {
+        "facebook": "https://facebook.com/example",
+        "twitter": "https://twitter.com/example",
+        "instagram": "https://instagram.com/example"
+      },
+      "siteColors": {
+        "primary": "#123456",
+        "secondary": "#654321",
+        "background": "#ffffff",
+        "text_color": "#000000"
+      },
+      "maintenanceMode": {
+        "enabled": false,
+        "message": "The site is under maintenance. Please check back later."
+      }
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "message": "Site settings not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error fetching site settings",
+      "error": "Internal server error"
+    }
+    ```
+
+#### Update Site Settings
+
+- **Endpoint**: `PUT /api/site/settings`
+- **Description**: Update the site settings.
+- **Request Body**:
+  ```json
+  {
+    "siteName": "New Escrow App",
+    "siteLogo": "https://example.com/new-logo.png",
+    "siteDescription": "An updated secure escrow service platform.",
+    "siteUrl": "https://newexample.com",
+    "siteEmail": "new-support@example.com",
+    "sitePhone": "+9876543210",
+    "siteAddress": "456 Another Street, City, Country",
+    "socialMediaLinks": {
+      "facebook": "https://facebook.com/newexample",
+      "twitter": "https://twitter.com/newexample"
+    },
+    "siteColors": {
+      "primary": "#abcdef",
+      "secondary": "#fedcba",
+      "background": "#f0f0f0",
+      "text_color": "#333333"
+    },
+    "maintenanceMode": {
+      "enabled": true,
+      "message": "We are currently performing maintenance. Please check back soon."
+    }
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Site settings updated successfully",
+      "updatedSettings": {
+        "siteName": "New Escrow App",
+        "siteLogo": "https://example.com/new-logo.png",
+        "siteDescription": "An updated secure escrow service platform.",
+        "siteUrl": "https://newexample.com",
+        "siteEmail": "new-support@example.com",
+        "sitePhone": "+9876543210",
+        "siteAddress": "456 Another Street, City, Country",
+        "socialMediaLinks": {
+          "facebook": "https://facebook.com/newexample",
+          "twitter": "https://twitter.com/newexample"
+        },
+        "siteColors": {
+          "primary": "#abcdef",
+          "secondary": "#fedcba",
+          "background": "#f0f0f0",
+          "text_color": "#333333"
+        },
+        "maintenanceMode": {
+          "enabled": true,
+          "message": "We are currently performing maintenance. Please check back soon."
+        }
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error: [specific validation error message]"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error updating site settings",
+      "error": "Internal server error"
+    }
+    ```
+
+#### Enable Maintenance Mode
+
+- **Endpoint**: `PUT /api/site/maintenance`
+- **Description**: Enable or disable maintenance mode for the site.
+- **Request Body**:
+  ```json
+  {
+    "enabled": true,
+    "message": "The site is under maintenance. Please check back later."
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Maintenance mode updated successfully",
+      "updatedSettings": {
+        "maintenanceMode": {
+          "enabled": true,
+          "message": "The site is under maintenance. Please check back later."
+        }
+      }
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "message": "Site settings not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error updating maintenance mode",
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
 ### Authentication
 
 #### Register a New User

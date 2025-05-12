@@ -9,7 +9,10 @@ const {
 const { authMiddleware, isAdmin } = require("../middleware/authMiddleware");
 
 // Route to get site settings
-router.get("/siteinfo", getSiteSettings);
+router.get("/site/info", getSiteSettings);
+
+// Route to get site frontpage content
+// router.get("/site/frontpage", getSiteSettings);
 // Route to update site settings
 router.put("/settings", authMiddleware, isAdmin, updateSiteSettings);
 // Route to enable maintenance mode

@@ -11,6 +11,7 @@ const createEscrowSchema = Joi.object({
   creatorRole: Joi.string().valid("buyer", "seller").required(),
   counterpartyEmail: Joi.string().email().required(),
   amount: Joi.number().positive().required(),
+  category: Joi.string().required(),
   description: Joi.string().required(),
   terms: Joi.array().items(Joi.string().required()).min(1).required(),
 });
@@ -36,14 +37,21 @@ const createEscrow = async (req, res) => {
 
   try {
     const creatorId = req.userId;
-    const { creatorRole, counterpartyEmail, amount, description, terms } =
-      req.body;
+    const {
+      creatorRole,
+      counterpartyEmail,
+      amount,
+      description,
+      category,
+      terms,
+    } = req.body;
 
     const escrow = await createNewEscrow(
       creatorId,
       creatorRole,
       counterpartyEmail,
       amount,
+      category,
       description,
       terms
     );

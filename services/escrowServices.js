@@ -12,6 +12,7 @@ async function createNewEscrow(
   creatorRole,
   counterpartyEmail,
   amount,
+  category,
   description,
   terms
 ) {
@@ -42,6 +43,7 @@ async function createNewEscrow(
       creatorRole,
       counterpartyEmail: counterEmail,
       amount,
+      category,
       description,
       terms,
       status: "pending",

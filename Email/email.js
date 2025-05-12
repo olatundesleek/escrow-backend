@@ -16,8 +16,8 @@ if (!isProduction) {
 // Create email transporter dynamically
 const transporter = isProduction
   ? nodemailer.createTransport({
-      host: 'smtp.resend.com',
-     secure: true,
+      host: "smtp.resend.com",
+      secure: true,
       port: 465,
       auth: {
         user: process.env.USER,
@@ -62,7 +62,7 @@ async function sendPasswordChangedEmail(user, email) {
 
 async function sendUserRegisterationEmail(username, email, token) {
   try {
-    const subject = "Welcome to My Naija Escrow";
+    const subject = "Welcome to Naija Escrow";
     const html = generateUserRegisterationEmail(username, token);
     await transporter.sendMail({
       from: process.env.EMAIL,

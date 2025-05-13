@@ -17,7 +17,7 @@ const siteRoutes = require("./routes/siteRoutes");
 app.use("/api/auth", authRoutes);
 app.use("/api", escrowRoutes);
 app.use("/api", profileRoutes);
-app.use('/api',siteRoutes);
+app.use("/api", siteRoutes);
 // app.use("/api", profileRoutes);
 // app.use('/api/payment', paymentRoutes);
 // app.use('/api/dispute', disputeRoutes);

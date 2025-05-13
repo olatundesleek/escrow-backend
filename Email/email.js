@@ -17,7 +17,7 @@ if (!isProduction) {
 const transporter = isProduction
   ? nodemailer.createTransport({
       host: "smtp.mailersend.net",
-      secure: true,
+      secure: false,
       port: 587,
       auth: {
         user: process.env.USER,

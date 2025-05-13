@@ -16,9 +16,9 @@ if (!isProduction) {
 // Create email transporter dynamically
 const transporter = isProduction
   ? nodemailer.createTransport({
-      host: "smtp.resend.com",
+      host: "smtp.mailersend.net",
       secure: true,
-      port: 465,
+      port: 587,
       auth: {
         user: process.env.USER,
         pass: process.env.PASS,

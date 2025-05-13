@@ -28,6 +28,10 @@ const passwordResetSchema = Joi.object({
   email: Joi.string().required(),
 });
 
+const confirmResetTokenSchema = Joi.object({
+  token: Joi.string().required(),
+});
+
 // Resend verification email
 const resendVerificationEmail = async (req, res) => {
   const { error } = emailVerificationSchema.validate(req.body);
@@ -140,6 +144,31 @@ async function resetPassword(req, res) {
   }
 }
 
+// confirm reset token
+const confirmResetToken = async (req, res) => {
+  const { token } = req.params;
+  const { error } = confirmResetTokenSchema.validate({ token });
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation error",
+      details: error.details.map((d) => d.message),
+    });
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.PASSWORD_RESET_SECRET);
+    res.status(200).json({
+      success: true,
+      message: "Token is valid",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: "Invalid or expired token",
+    });
+  }
+};
+
 // Register a new user
 const register = async (req, res) => {
   const { error } = registerSchema.validate(req.body);
@@ -225,8 +254,8 @@ const login = async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      process.env.JWT_SIGNIN_SECRET.replace(/\\n/g, "\n"),
+      { algorithm: "RS256", expiresIn: "1h" }
     );
 
     res.cookie("token", token, {
@@ -300,4 +329,5 @@ module.exports = {
   sendVerificationEmail,
   resendVerificationEmail,
   resetPassword,
+  confirmResetToken,
 };

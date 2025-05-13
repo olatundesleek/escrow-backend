@@ -242,6 +242,7 @@ const login = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: "Account is not active. Please verify your email.",
+        email: user.email,
       });
     }
 

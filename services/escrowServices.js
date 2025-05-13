@@ -13,6 +13,7 @@ async function createNewEscrow(
   counterpartyEmail,
   amount,
   category,
+  escrowfeepayment,
   description,
   terms
 ) {
@@ -44,6 +45,7 @@ async function createNewEscrow(
       counterpartyEmail: counterEmail,
       amount,
       category,
+      escrowfeepayment,
       description,
       terms,
       status: "pending",

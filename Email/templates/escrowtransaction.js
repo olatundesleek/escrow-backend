@@ -37,7 +37,7 @@ const generateCounterpartyEscrowEmail = (
       }
       p {
         font-size: 16px;
-        line-height: 0.45;
+        line-height: 1.15;
       }
       strong {
         color: #333;

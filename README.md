@@ -251,6 +251,7 @@ Ensure the following environment variables are set in your `.env` file:
 #### Register a New User
 
 - **Endpoint**: `POST /api/auth/register`
+- **Description**: Register a new user.
 - **Request Body**:
   ```json
   {
@@ -269,22 +270,34 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "User registered successfully. Verification email sent."
     }
     ```
-  - Error (400/409):
+  - Error (400):
     ```json
     {
       "success": false,
-      "message": "Validation error or Email/Username already in use"
+      "message": "Validation error",
+      "details": ["Error details here"]
     }
     ```
+  - Error (409):
+    ```json
+    {
+      "success": false,
+      "message": "Email or username already in use"
+    }
+    ```
+
+---
 
 #### Login a User
 
 - **Endpoint**: `POST /api/auth/login`
+- **Description**: Log in an existing user.
 - **Request Body**:
   ```json
   {
     "username": "johndoe",
-    "password": "password123"
+    "password": "password123",
+    "rememberme": true
   }
   ```
 - **Response**:
@@ -295,17 +308,35 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Login successful"
     }
     ```
-  - Error (401/403):
+  - Error (400):
     ```json
     {
       "success": false,
-      "message": "Invalid credentials or account not verified"
+      "message": "Validation error",
+      "details": ["Error details here"]
     }
     ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "Invalid credentials"
+    }
+    ```
+  - Error (403):
+    ```json
+    {
+      "success": false,
+      "message": "Account is not active. Please verify your email."
+    }
+    ```
+
+---
 
 #### Logout a User
 
 - **Endpoint**: `POST /api/auth/logout`
+- **Description**: Log out the currently authenticated user.
 - **Response**:
   - Success (200):
     ```json
@@ -315,9 +346,12 @@ Ensure the following environment variables are set in your `.env` file:
     }
     ```
 
+---
+
 #### Verify Email
 
 - **Endpoint**: `GET /api/auth/verify-email/:token`
+- **Description**: Verify a user's email using a token.
 - **Response**:
   - Success (200):
     ```json
@@ -326,11 +360,126 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Email verified successfully"
     }
     ```
-  - Error (400/404):
+  - Error (400):
     ```json
     {
       "success": false,
       "message": "Invalid or expired verification token"
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "User not found"
+    }
+    ```
+
+---
+
+#### Resend Verification Email
+
+- **Endpoint**: `POST /api/auth/send-verification-email`
+- **Description**: Resend the email verification link to a user.
+- **Request Body**:
+  ```json
+  {
+    "email": "johndoe@example.com"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Verification email resent successfully"
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "User not found"
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Account is already verified"
+    }
+    ```
+
+---
+
+#### Reset Password
+
+- **Endpoint**: `POST /api/auth/reset-password`
+- **Description**: Request a password reset email.
+- **Request Body**:
+  ```json
+  {
+    "email": "johndoe@example.com"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "If an account with johndoe@example.com exists, you will receive a password reset email."
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to process password reset request"
+    }
+    ```
+
+---
+
+#### Confirm Reset Token
+
+- **Endpoint**: `GET /api/auth/confirm-reset-token/:token`
+- **Description**: Confirm the validity of a password reset token.
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Token is valid"
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Invalid or expired token"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to validate token"
     }
     ```
 

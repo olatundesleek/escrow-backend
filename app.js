@@ -3,7 +3,26 @@ const app = express();
 const bodyParser = require("body-parser");
 var cors = require("cors");
 
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://escrow-rouge.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
 const cookieParser = require("cookie-parser");
 app.use(bodyParser.json());
 app.use(cookieParser());

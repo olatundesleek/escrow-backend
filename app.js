@@ -1,10 +1,12 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+var cors = require("cors");
 
 const cookieParser = require("cookie-parser");
 app.use(bodyParser.json());
 app.use(cookieParser());
+app.use(cors());
 
 const authRoutes = require("./routes/authRoutes");
 const escrowRoutes = require("./routes/escrowRoutes");

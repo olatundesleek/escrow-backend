@@ -62,7 +62,7 @@ async function createNewEscrow(
         amount,
         createdAt,
         creatorRole,
-        counterEmail,
+        creatorEmail,
         description
       );
     } catch (emailError) {

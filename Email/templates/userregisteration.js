@@ -48,7 +48,7 @@ const generateUserRegisterationEmail = (username, token) => {
         <h2>Welcome to Naija Escrow</h2>
         <p>Hello <strong>${username}</strong>,</p>
         <p>click to activate your account</p>
-        <a href="https://${link}/verify-email/${token}" class="button">Activate Account</a>
+        <a href="https://${link}verify-email/${token}" class="button">Activate Account</a>
         <p>If you did not create an account, no further action is required.</p>
         <p>If you have any questions, feel free to contact us.</p>
         <p>Thanks, <br> The Team</p>

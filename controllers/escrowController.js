@@ -12,6 +12,7 @@ const createEscrowSchema = Joi.object({
   counterpartyEmail: Joi.string().email().required(),
   amount: Joi.number().positive().required(),
   category: Joi.string().required(),
+  escrowfeepayment: Joi.string().valid("creator", "counterparty").optional(),
   description: Joi.string().required(),
   terms: Joi.array().items(Joi.string().required()).min(1).required(),
 });
@@ -43,6 +44,7 @@ const createEscrow = async (req, res) => {
       amount,
       description,
       category,
+      escrowfeepayment,
       terms,
     } = req.body;
 
@@ -52,6 +54,7 @@ const createEscrow = async (req, res) => {
       counterpartyEmail,
       amount,
       category,
+      escrowfeepayment,
       description,
       terms
     );

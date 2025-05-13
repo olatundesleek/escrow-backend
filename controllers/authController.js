@@ -19,6 +19,7 @@ const registerSchema = Joi.object({
 const loginSchema = Joi.object({
   username: Joi.string().required(),
   password: Joi.string().required(),
+  rememberme: Joi.boolean().optional(),
 });
 
 const emailVerificationSchema = Joi.object({
@@ -226,7 +227,7 @@ const login = async (req, res) => {
     });
   }
 
-  const { username, password } = req.body;
+  const { username, password, rememberme } = req.body;
 
   try {
     const user = await User.findOne({ username });
@@ -251,11 +252,11 @@ const login = async (req, res) => {
         message: "Invalid credentials",
       });
     }
-
+    const expiresIn = rememberme ? "5d" : "1h";
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SIGNIN_SECRET.replace(/\\n/g, "\n"),
-      { algorithm: "RS256", expiresIn: "1h" }
+      { algorithm: "RS256", expiresIn: expiresIn }
     );
 
     res.cookie("token", token, {
@@ -268,6 +269,7 @@ const login = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Login successful",
+      token: token,
     });
   } catch (error) {
     res.status(500).json({

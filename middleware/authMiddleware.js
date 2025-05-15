@@ -5,7 +5,9 @@ const authMiddleware = (req, res, next) => {
   const token = req.cookies.token;
 
   if (!token) {
-    return res.status(403).json({ message: "No token provided" });
+    return res
+      .status(403)
+      .json({ message: "No token provided", authenticated: false });
   }
 
   jwt.verify(
@@ -14,9 +16,13 @@ const authMiddleware = (req, res, next) => {
     { algorithms: ["RS256"] },
     (err, decoded) => {
       if (err) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized",
+        });
       }
       req.userId = decoded.id;
+
       next();
     }
   );

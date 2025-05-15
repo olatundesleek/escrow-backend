@@ -36,6 +36,21 @@ async function getProfileDetails(req, res) {
   }
 }
 
+// check userisauthenticated
+async function isAuthenticated(req, res) {
+  try {
+    res.status(200).json({
+      message: "User is authenticated",
+      authenticated: true,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error checking authentication",
+      error,
+    });
+  }
+}
+
 // Update profile
 async function updateProfile(req, res) {
   try {
@@ -109,4 +124,5 @@ module.exports = {
   changePassword,
   deleteAccount,
   enableTwoFactorAuth,
+  isAuthenticated,
 };

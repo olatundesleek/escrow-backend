@@ -456,6 +456,35 @@ Ensure the following environment variables are set in your `.env` file:
 
 ---
 
+#### verify a logged in user
+
+- **Endpoint**: `GET /api/me`
+- **Description**: Confirm if a user is authenticated.
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "User is authenticated",
+      "authenticated": true
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "No token provided",
+      "authenticated": false
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to validate token"
+    }
+    ```
+
+---
+
 #### Confirm Reset Token
 
 - **Endpoint**: `GET /api/auth/confirm-reset-token/:token`

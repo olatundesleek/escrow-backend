@@ -261,9 +261,9 @@ const login = async (req, res) => {
     );
 
     res.cookie("token", token, {
-      httpOnly: true,
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
-      // sameSite: "Strict",
+      sameSite: "none",
       maxAge: 3600000,
     });
 

@@ -45,7 +45,7 @@ const generatePasswordResetEmail = (user, token) => {
         <h2>Password Reset Request</h2>
         <p>Hello <strong>${user}</strong>,</p>
         <p>We received a request to reset your password. Click the button below to reset it:</p>
-        <a href="http://${link}resetpassword/${token}" class="button">Reset Password</a>
+        <a href="http://${link}resetpassword?token=${token}" class="button">Reset Password</a>
         <p>If you didn't request this, you can ignore this email.</p>
         <p>This link would expire in 5 minutes.</p>
         <p>Thanks, <br> The Team</p>

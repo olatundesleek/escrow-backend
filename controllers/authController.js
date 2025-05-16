@@ -319,10 +319,12 @@ const verifyEmail = async (req, res) => {
 
 // Logout
 const logout = (req, res) => {
-  res.clearCookie("token");
-  res.status(200).json({
-    success: true,
-    message: "Logged out successfully",
+  const isProduction = process.env.NODE_ENV === "production";
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
   });
 };
 

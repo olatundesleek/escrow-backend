@@ -22,6 +22,7 @@ app.use(
     credentials: true,
   })
 );
+app.options("*", cors());
 
 const cookieParser = require("cookie-parser");
 app.use(bodyParser.json());

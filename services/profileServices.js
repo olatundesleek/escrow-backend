@@ -1,5 +1,31 @@
 const User = require("../models/User");
+const Escrow = require("../models/Escrow");
 const bcrypt = require("bcrypt");
+
+// get Dashboard details
+async function getDashboardData(userId) {
+  try {
+    console.log("User ID in service:", userId);
+
+    const userDashboardData = await User.findById(userId)
+      .select("-password")
+      .populate([
+        { path: "Disputes" },
+        { path: "Transactions" },
+        { path: "Wallet" },
+      ]);
+
+    if (!userDashboardData) {
+      throw new Error("User not found");
+    }
+    return {
+      success: true,
+      data: userDashboardData,
+    };
+  } catch (error) {
+    throw new Error("Failed to fetch user data");
+  }
+}
 
 // Get user by ID
 async function getUserById(userId) {
@@ -91,4 +117,5 @@ module.exports = {
   deleteUser,
   changeUserPassword,
   enable2FA,
+  getDashboardData,
 };

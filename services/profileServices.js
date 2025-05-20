@@ -1,23 +1,27 @@
 const User = require("../models/User");
 const Escrow = require("../models/Escrow");
+const Transaction = require("../models/Transaction");
+const Dispute = require("../models/Dispute");
+const Wallet = require("../models/Wallet");
+// const Chat = require("../models/Chat");
 const bcrypt = require("bcrypt");
 
 // get Dashboard details
 async function getDashboardData(userId) {
   try {
-    console.log("User ID in service:", userId);
-
     const userDashboardData = await User.findById(userId)
       .select("-password")
       .populate([
-        { path: "Disputes" },
-        { path: "Transactions" },
-        { path: "Wallet" },
+        { path: "escrows" },
+        { path: "transactions" },
+        { path: "disputes" },
+        { path: "wallet" },
       ]);
 
     if (!userDashboardData) {
       throw new Error("User not found");
     }
+
     return {
       success: true,
       data: userDashboardData,

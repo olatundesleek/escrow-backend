@@ -40,13 +40,13 @@ const userSchema = new mongoose.Schema(
       },
       documentUrl: String,
     },
-
+    escrows: [{ type: mongoose.Schema.Types.ObjectId, ref: "Escrow" }],
     disputes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Dispute" }],
+    wallet: [{ type: mongoose.Schema.Types.ObjectId, ref: "Wallet" }],
 
     transactions: [
       { type: mongoose.Schema.Types.ObjectId, ref: "Transaction" },
     ],
-    wallet: { type: mongoose.Schema.Types.ObjectId, ref: "Wallet" },
 
     createdAt: { type: Date, default: Date.now },
   },

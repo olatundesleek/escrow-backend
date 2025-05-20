@@ -53,6 +53,9 @@ async function createNewEscrow(
 
     await escrow.save();
 
+    user.escrows.push(escrow._id);
+    await user.save();
+
     const escrowId = escrow._id;
     const createdAt = escrow.createdAt;
 
@@ -139,6 +142,9 @@ async function acceptNewEscrow(userId, escrowId) {
     escrow.chatActive = true;
 
     await escrow.save();
+
+    user.escrows.push(escrow._id);
+    await user.save();
 
     // Populate the chat field when returning the escrow
     const populatedEscrow = await Escrow.findById(escrow._id).populate("chat"); // Populating the chat field

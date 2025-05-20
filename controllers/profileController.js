@@ -4,6 +4,7 @@ const {
   updateUser,
   deleteUser,
   changeUserPassword,
+  getDashboardData,
   enable2FA,
 } = require("../services/profileServices");
 
@@ -48,6 +49,24 @@ async function isAuthenticated(req, res) {
       message: "Error checking authentication",
       error,
     });
+  }
+}
+
+// Get dashboard details
+async function getDashboardDetails(req, res) {
+  try {
+    const userId = req.userId;
+
+    // Assuming you have a function to get dashboard details
+    const dashboardDetails = await getDashboardData(userId);
+    res.status(200).json({
+      message: "Dashboard details fetched successfully",
+      dashboardDetails,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching dashboard details", error });
   }
 }
 
@@ -125,4 +144,5 @@ module.exports = {
   deleteAccount,
   enableTwoFactorAuth,
   isAuthenticated,
+  getDashboardDetails,
 };

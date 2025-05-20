@@ -199,7 +199,6 @@ const register = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      status: "inactive",
     });
 
     await sendVerificationEmail(newUser);
@@ -260,15 +259,15 @@ const login = async (req, res) => {
       { algorithm: "RS256", expiresIn: expiresIn }
     );
 
-    // const isProduction = process.env.NODE_ENV === "production";
+    const isProduction = process.env.NODE_ENV === "production";
 
-    // res.cookie("token", token, {
-    //   httpOnly: true,
-    //   secure: isProduction, // Only secure in production (requires HTTPS)
-    //   sameSite: isProduction ? "none" : "lax", // "none" for cross-site in prod, "lax" to avoid rejection in dev
-    //   maxAge: 3600000, // 1 hour in milliseconds
-    //   path: "/", // Ensure it's sent on all routes
-    // });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isProduction, // Only secure in production (requires HTTPS)
+      sameSite: isProduction ? "none" : "lax", // "none" for cross-site in prod, "lax" to avoid rejection in dev
+      maxAge: 3600000, // 1 hour in milliseconds
+      path: "/", // Ensure it's sent on all routes
+    });
 
     res.status(200).json({
       success: true,

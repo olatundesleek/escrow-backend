@@ -785,6 +785,49 @@ Ensure the following environment variables are set in your `.env` file:
     }
     ```
 
+---
+
+### User Dashboard
+
+#### Get User Dashboard
+
+- **Endpoint**: `GET /api/dashboard`
+- **Description**: Retrieve dashboard data for the authenticated user, including escrows, transactions, disputes, and wallet info.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "data": {
+        "_id": "userId",
+        "firstname": "John",
+        "lastname": "Doe",
+        "username": "johndoe",
+        "email": "johndoe@example.com",
+        "escrows": [ /* array of escrow objects */ ],
+        "transactions": [ /* array of transaction objects */ ],
+        "disputes": [ /* array of dispute objects */ ],
+        "wallet": { /* wallet object */ }
+      }
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "User not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to fetch user data"
+    }
+    ```
+
 ## Contributing
 
 Contributions are welcome! Please follow these steps:

@@ -23,7 +23,10 @@ const walletSchema = new mongoose.Schema(
       default: "NGN",
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    minimize: false,
+  }
 );
 
 // === Utility Methods ===

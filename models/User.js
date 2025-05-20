@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     username: { type: String, required: true, unique: true },
     email: { type: String, unique: true },
     password: { type: String, required: true },
+
     isVerified: { type: Boolean, default: false },
     status: {
       type: String,
@@ -28,7 +29,9 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+
     address: { type: addressSchema, required: false },
+
     kyc: {
       status: {
         type: String,
@@ -37,6 +40,14 @@ const userSchema = new mongoose.Schema(
       },
       documentUrl: String,
     },
+    escrows: [{ type: mongoose.Schema.Types.ObjectId, ref: "Escrow" }],
+    disputes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Dispute" }],
+    wallet: [{ type: mongoose.Schema.Types.ObjectId, ref: "Wallet" }],
+
+    transactions: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Transaction" },
+    ],
+
     createdAt: { type: Date, default: Date.now },
   },
   {

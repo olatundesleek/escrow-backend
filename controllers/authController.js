@@ -1,6 +1,8 @@
 const Joi = require("joi");
 const User = require("../models/User");
+const Wallet = require("../models/Wallet");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const {
   sendUserRegisterationEmail,
@@ -183,9 +185,16 @@ const register = async (req, res) => {
 
   const { firstname, lastname, username, email, password } = req.body;
 
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }],
+    }).session(session);
     if (existingUser) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(409).json({
         success: false,
         message: "Email or username already in use",
@@ -193,7 +202,9 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({
+
+    // Create user within the session
+    const newUser = new User({
       firstname,
       lastname,
       username,
@@ -201,6 +212,21 @@ const register = async (req, res) => {
       password: hashedPassword,
     });
 
+    await newUser.save({ session });
+
+    // Create wallet linked to user within the session
+    const newWallet = new Wallet({ user: newUser._id });
+    await newWallet.save({ session });
+
+    // Link wallet to user within the session
+    newUser.wallet = newWallet._id;
+    await newUser.save({ session });
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // Send verification email (outside transaction)
     await sendVerificationEmail(newUser);
 
     res.status(201).json({
@@ -208,6 +234,9 @@ const register = async (req, res) => {
       message: "User registered successfully. Verification email sent.",
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Transaction error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to register user",

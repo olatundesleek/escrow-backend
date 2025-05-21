@@ -4,6 +4,7 @@ const {
   createNewEscrow,
   acceptNewEscrow,
   getEscrowById,
+  getAllEscrows,
 } = require("../services/escrowServices.js");
 
 // Joi schemas
@@ -67,6 +68,32 @@ const createEscrow = async (req, res) => {
     console.error("Create Escrow Error:", err);
     return res.status(500).json({
       message: "Error creating escrow",
+      error: err.message || "Internal server error",
+    });
+  }
+};
+
+const getEscrows = async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const escrows = await getAllEscrows(userId);
+    if (!escrows || escrows.length === 0) {
+      return res.status(404).json({
+        message: "No escrows found for this user",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Escrows retrieved successfully",
+      escrows,
+    });
+  } catch (err) {
+    console.error("Get Escrows Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Error retrieving escrows",
       error: err.message || "Internal server error",
     });
   }
@@ -166,6 +193,7 @@ const getEscrowDetails = async (req, res) => {
 
 module.exports = {
   createEscrow,
+  getEscrows,
   updateEscrow,
   getEscrowDetails,
   acceptEscrow,

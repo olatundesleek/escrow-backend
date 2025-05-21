@@ -15,27 +15,35 @@ The Escrow App is a web application designed to facilitate secure transactions b
 ## Directory Structure
 
 ```
-escrow-app
+escrow-backend
 ├── controllers
 │   ├── authController.js
 │   ├── escrowController.js
 │   ├── paymentController.js
-│   └── disputeController.js
+│   ├── disputeController.js
+│   ├── profileController.js
+│   └── siteController.js
 ├── routes
 │   ├── authRoutes.js
 │   ├── escrowRoutes.js
 │   ├── paymentRoutes.js
-│   └── disputeRoutes.js
+│   ├── disputeRoutes.js
+│   ├── profileRoutes.js
+│   └── siteRoutes.js
 ├── models
 │   ├── User.js
 │   ├── Escrow.js
 │   ├── Dispute.js
-│   └── transaction.js
+│   ├── Transaction.js
+│   ├── Wallet.js
+│   └── SiteSettings.js
 ├── middleware
 │   └── authMiddleware.js
 ├── services
 │   ├── userServices.js
-│   └── escrowServices.js
+│   ├── escrowServices.js
+│   ├── profileServices.js
+│   └── paymentGateway.js
 ├── utils
 │   └── paymentGateway.js
 ├── Email
@@ -519,12 +527,17 @@ Ensure the following environment variables are set in your `.env` file:
 #### Create a New Escrow
 
 - **Endpoint**: `POST /api/escrow`
+- **Description**: Create a new escrow transaction.
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
     "creatorRole": "buyer",
     "counterpartyEmail": "seller@example.com",
     "amount": 5000,
+    "category": "services",
+    "escrowfeepayment": "creator",
     "description": "Payment for services",
     "terms": ["Deliver project files", "Provide support for 30 days"]
   }
@@ -535,23 +548,76 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "message": "Escrow created successfully",
       "escrow": {
-        "id": "12345",
+        "_id": "12345",
         "creatorRole": "buyer",
+        "counterpartyEmail": "seller@example.com",
         "amount": 5000,
+        "category": "services",
+        "escrowfeepayment": "creator",
+        "description": "Payment for services",
+        "terms": ["Deliver project files", "Provide support for 30 days"],
         "status": "pending"
       }
     }
     ```
-  - Error (400/500):
+  - Error (400):
     ```json
     {
-      "message": "Validation error or Internal server error"
+      "message": "Validation error",
+      "details": ["Error details here"]
     }
     ```
+  - Error (500):
+    ```json
+    {
+      "message": "Failed to create escrow: [error message]"
+    }
+    ```
+
+---
+
+#### Get All Escrows for User
+
+- **Endpoint**: `GET /api/escrow`
+- **Description**: Retrieve all escrows associated with the authenticated user.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "escrows": [
+        {
+          "_id": "12345",
+          "creatorRole": "buyer",
+          "amount": 5000,
+          "status": "pending"
+        }
+        // ...more escrows
+      ]
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "message": "User not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Failed to retrieve all escrows: [error message]"
+    }
+    ```
+
+---
 
 #### Accept an Escrow
 
 - **Endpoint**: `POST /api/acceptescrow`
+- **Description**: Accept an escrow invitation as the counterparty.
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
@@ -564,43 +630,78 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "message": "Escrow accepted successfully",
       "escrow": {
-        "id": "12345",
+        "_id": "12345",
         "status": "active"
+        // ...other escrow fields
       }
     }
     ```
-  - Error (400/500):
+  - Error (400):
     ```json
     {
-      "message": "Validation error or Internal server error"
+      "message": "Validation error or Unauthorized: Your email does not match the counterparty email"
     }
     ```
+  - Error (500):
+    ```json
+    {
+      "message": "Failed to accept escrow: [error message]"
+    }
+    ```
+
+---
 
 #### Get Escrow Details
 
 - **Endpoint**: `GET /api/escrow/:id`
+- **Description**: Retrieve details of a specific escrow by its ID.
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Response**:
   - Success (200):
     ```json
     {
       "escrow": {
-        "id": "12345",
+        "_id": "12345",
         "creatorRole": "buyer",
+        "counterpartyEmail": "seller@example.com",
         "amount": 5000,
+        "category": "services",
+        "escrowfeepayment": "creator",
+        "description": "Payment for services",
+        "terms": ["Deliver project files", "Provide support for 30 days"],
         "status": "active"
+        // ...other escrow fields
       }
     }
     ```
-  - Error (404/500):
+  - Error (404):
     ```json
     {
-      "message": "Escrow not found or Internal server error"
+      "message": "Escrow not found"
     }
     ```
+  - Error (403):
+    ```json
+    {
+      "message": "Unauthorized: You do not have permission to access this escrow"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Failed to retrieve escrow: [error message]"
+    }
+    ```
+
+---
 
 #### Update an Escrow
 
 - **Endpoint**: `PUT /api/escrow/:id`
+- **Description**: Update an existing escrow transaction.
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
@@ -614,16 +715,23 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "message": "Escrow updated successfully",
       "escrow": {
-        "id": "12345",
+        "_id": "12345",
         "amount": 6000,
         "status": "completed"
+        // ...other escrow fields
       }
     }
     ```
-  - Error (404/500):
+  - Error (404):
     ```json
     {
-      "message": "Escrow not found or Internal server error"
+      "message": "Escrow not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Failed to update escrow: [error message]"
     }
     ```
 
@@ -806,10 +914,18 @@ Ensure the following environment variables are set in your `.env` file:
         "lastname": "Doe",
         "username": "johndoe",
         "email": "johndoe@example.com",
-        "escrows": [ /* array of escrow objects */ ],
-        "transactions": [ /* array of transaction objects */ ],
-        "disputes": [ /* array of dispute objects */ ],
-        "wallet": { /* wallet object */ }
+        "escrows": [
+          /* array of escrow objects */
+        ],
+        "transactions": [
+          /* array of transaction objects */
+        ],
+        "disputes": [
+          /* array of dispute objects */
+        ],
+        "wallet": {
+          /* wallet object */
+        }
       }
     }
     ```

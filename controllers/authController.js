@@ -316,8 +316,8 @@ const verifyEmail = async (req, res) => {
   const { token } = req.params;
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await User.findOne({ email: decoded.email });
+    const email = decoded.email;
+    const user = await User.findOne({ email: email });
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -342,6 +342,7 @@ const verifyEmail = async (req, res) => {
     res.status(400).json({
       success: false,
       message: "Invalid or expired verification token",
+      email: email,
     });
   }
 };

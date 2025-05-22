@@ -10,12 +10,12 @@ const transactionSchema = new mongoose.Schema(
     escrow: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Escrow",
-      required: false, // Not required for wallet transactions
+      required: true,
     },
     wallet: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Wallet",
-      required: false,
+      required: true,
     },
     type: {
       type: String,
@@ -40,7 +40,7 @@ const transactionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["success", "failed", "pending"],
+      enum: ["initiated", "success", "failed", "pending"],
       default: "pending",
       required: true,
     },

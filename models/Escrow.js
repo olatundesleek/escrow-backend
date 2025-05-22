@@ -29,8 +29,8 @@ const escrowSchema = new mongoose.Schema(
     },
     escrowfeepayment: {
       type: String,
-      enum: ["creator", "counterparty"],
-      default: "creator",
+      enum: ["buyer", "seller", "split"],
+      default: "buyer",
     },
     chat: { type: mongoose.Schema.Types.ObjectId, ref: "Chat" }, //
     chatActive: { type: Boolean, default: false }, //

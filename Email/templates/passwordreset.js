@@ -25,7 +25,7 @@ const generatePasswordResetEmail = (user, token) => {
         .button {
             display: inline-block;
             background: #007bff;
-            color: white;
+            color: #ffffff !important;
             text-decoration: none;
             padding: 10px 20px;
             border-radius: 5px;

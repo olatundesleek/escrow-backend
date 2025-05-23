@@ -29,7 +29,10 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
-
+    subRole: {
+      type: String,
+      enum: ["customer_care", "auditor", "super_admin"],
+    },
     address: { type: addressSchema, required: false },
 
     kyc: {

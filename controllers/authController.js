@@ -282,11 +282,32 @@ const login = async (req, res) => {
       });
     }
     const expiresIn = rememberme ? "5d" : "1h";
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SIGNIN_SECRET.replace(/\\n/g, "\n"),
-      { algorithm: "RS256", expiresIn: expiresIn }
-    );
+    let token;
+    console.log(user.role);
+    if (user.role === "user") {
+      token = jwt.sign(
+        {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
+        process.env.JWT_SIGNIN_SECRET.replace(/\\n/g, "\n"),
+        { algorithm: "RS256", expiresIn: expiresIn }
+      );
+    } else {
+      token = jwt.sign(
+        {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          subRole: user.subRole,
+        },
+        process.env.JWT_SIGNIN_SECRET.replace(/\\n/g, "\n"),
+        { algorithm: "RS256", expiresIn: expiresIn }
+      );
+    }
 
     const isProduction = process.env.NODE_ENV === "production";
 

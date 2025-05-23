@@ -944,6 +944,105 @@ Ensure the following environment variables are set in your `.env` file:
     }
     ```
 
+---
+
+### Admin
+
+#### Get Admin Dashboard
+
+- **Endpoint**: `GET /api/admin/dashboard`
+- **Description**: Retrieve admin dashboard statistics. Requires admin authentication and appropriate admin role.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Dashboard details fetched successfully",
+      "dashboardDetails": {
+        "success": true,
+        "message": "Dashboard data fetched successfully",
+        "data": {
+          "totalUsers": 100,
+          "totalDisputes": 5,
+          "totalEscrows": 50,
+          "escrowStatus": {
+            "pending": 10,
+            "active": 20,
+            "completed": 15,
+            "disputed": 5
+          },
+          "totalTransactions": 200,
+          "wallet": {
+            "totalAvailable": 10000,
+            "totalLocked": 2000,
+            "total": 12000
+          }
+        }
+      }
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error fetching dashboard details",
+      "error": "Error message"
+    }
+    ```
+
+---
+
+#### Get All Escrows (Admin)
+
+- **Endpoint**: `GET /api/admin/escrows`
+- **Description**: Retrieve all escrows with optional filters. Requires admin authentication and appropriate admin role.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Query Parameters**:
+  - `status` (optional): Filter by escrow status (`pending`, `active`, `completed`, `disputed`)
+  - `username` (optional): Filter by username (creator or counterparty)
+  - `page` (optional): Page number (default: 1)
+  - `limit` (optional): Results per page (default: 10)
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Escrow details fetched successfully",
+      "escrowDetails": {
+        "data": {
+          "escrows": [
+            {
+              "_id": "escrowId",
+              "creator": {
+                /* user object */
+              },
+              "counterparty": {
+                /* user object */
+              },
+              "amount": 5000,
+              "status": "active"
+              // ...other escrow fields
+            }
+            // ...more escrows
+          ],
+          "totalPages": 5,
+          "currentPage": 1
+        }
+      }
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error fetching escrow details",
+      "error": "Error message"
+    }
+    ```
+
+---
+
 ## Contributing
 
 Contributions are welcome! Please follow these steps:

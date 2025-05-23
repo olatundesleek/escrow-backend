@@ -15,7 +15,7 @@ router.post(
 
 // Route to get payment status
 router.get(
-  "/status/:paymentId",
+  "/status",
   authMiddleware.verifyToken,
   paymentController.getPaymentStatus
 );

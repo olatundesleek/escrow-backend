@@ -13,7 +13,7 @@ const createEscrowSchema = Joi.object({
   counterpartyEmail: Joi.string().email().required(),
   amount: Joi.number().positive().required(),
   category: Joi.string().required(),
-  escrowfeepayment: Joi.string().valid("creator", "counterparty").optional(),
+  escrowfeepayment: Joi.string().valid("buyer", "seller").optional(),
   description: Joi.string().required(),
   terms: Joi.array().items(Joi.string().required()).min(1).required(),
 });

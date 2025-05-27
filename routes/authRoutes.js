@@ -5,6 +5,7 @@ const {
   logout,
   verifyEmail,
   resendVerificationEmail,
+  forgotPassword,
   resetPassword,
   confirmResetToken,
 } = require("../controllers/authController");
@@ -19,6 +20,8 @@ router.post("/login", login);
 router.post("/logout", logout);
 
 // Route for reseting password
+router.post("/forgot-password", forgotPassword);
+
 router.post("/reset-password", resetPassword);
 
 // Route for resending email verification

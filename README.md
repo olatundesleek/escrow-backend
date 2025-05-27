@@ -430,7 +430,7 @@ Ensure the following environment variables are set in your `.env` file:
 
 #### Reset Password
 
-- **Endpoint**: `POST /api/auth/reset-password`
+- **Endpoint**: `POST /api/auth/forgot-password`
 - **Description**: Request a password reset email.
 - **Request Body**:
   ```json
@@ -459,6 +459,45 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": false,
       "message": "Failed to process password reset request"
+    }
+    ```
+
+    ---
+
+#### Reset Password
+
+- **Endpoint**: `POST /api/auth/reset-password`
+- **Description**: change the existing forgotten password.
+- **Request Body**:
+  ```json
+  {
+    "token": "egi8739743hjehshdsd7987434",
+    "password":"password",
+    "confirmPassword":"password"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+     
+      "message": "Password reset successfully"
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "could not reset password"
     }
     ```
 

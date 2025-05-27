@@ -27,12 +27,16 @@ const loginSchema = Joi.object({
 const emailVerificationSchema = Joi.object({
   email: Joi.string().required(),
 });
-const passwordResetSchema = Joi.object({
-  email: Joi.string().required(),
-});
+
 
 const confirmResetTokenSchema = Joi.object({
   token: Joi.string().required(),
+});
+
+const resetPasswordSchema = Joi.object({
+  token: Joi.string().required(),
+  password: Joi.string().min(6).required(),
+  confirmPassword: Joi.string().valid(Joi.ref("password")).required(),
 });
 
 // Resend verification email
@@ -99,7 +103,7 @@ const sendVerificationEmail = async (user) => {
 
 // Send password reset email
 
-async function resetPassword(req, res) {
+async function forgotPassword(req, res) {
   const { error } = emailVerificationSchema.validate(req.body);
   if (error) {
     return res.status(400).json({
@@ -172,6 +176,49 @@ const confirmResetToken = async (req, res) => {
   }
 };
 
+const resetPassword = async (req, res) => {
+  const { error } = resetPasswordSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation error",
+      details: error.details.map((d) => d.message),
+    });
+  }
+  const { token, password, confirmPassword } = req.body;
+  try {
+    const decoded = jwt.verify(token, process.env.PASSWORD_RESET_SECRET)
+;
+    const user = await User.findOne({ email: decoded.email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match",
+      });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    await user.save();
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(400).json({
+      success: false,
+      message: "could not reset password",
+    }); 
+  }
+}
+
+
 // Register a new user
 const register = async (req, res) => {
   const { error } = registerSchema.validate(req.body);
@@ -203,7 +250,7 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user within the session
+    //Create user within the session
     const newUser = new User({
       firstname,
       lastname,
@@ -387,5 +434,6 @@ module.exports = {
   sendVerificationEmail,
   resendVerificationEmail,
   resetPassword,
+  forgotPassword,
   confirmResetToken,
 };

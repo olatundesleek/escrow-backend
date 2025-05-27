@@ -42,7 +42,7 @@ const generateUserRegisterationEmail = (username, token) => {
 </head>
 <body>
     <div class="container">
-        <h2>Welcome to social</h2>
+        <h2>Welcome to Escrow</h2>
         <p>Hello <strong>${username}</strong>,</p>
         <p>click to activate your account</p>
         <a href="http://${link}api/auth/verify-email/${token}" class="button">Activate Account</a>

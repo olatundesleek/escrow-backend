@@ -5,12 +5,14 @@ const {
   getEscrowDetails,
   acceptEscrow,
   updateEscrow,
+  getEscrows,
 } = require("../controllers/escrowController");
 
 const { authMiddleware } = require("../middleware/authMiddleware");
 
 // Route to create a new escrow
 router.post("/escrow", authMiddleware, createEscrow);
+router.get("/escrow", authMiddleware, getEscrows);
 
 // Route to accept an escrow
 router.post("/acceptescrow", authMiddleware, acceptEscrow);

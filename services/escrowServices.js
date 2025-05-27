@@ -12,9 +12,14 @@ async function createNewEscrow(
   creatorRole,
   counterpartyEmail,
   amount,
+  category,
+  escrowfeepayment,
   description,
   terms
 ) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     if (creatorRole !== "buyer" && creatorRole !== "seller") {
       throw new Error('Invalid creator role. Must be "buyer" or "seller".');
@@ -24,7 +29,7 @@ async function createNewEscrow(
       throw new Error("Escrow must include terms");
     }
 
-    const user = await User.findById(creatorId);
+    const user = await User.findById(creatorId).session(session);
     if (!user) throw new Error("User not found");
 
     const creatorFirstName = user.firstname;
@@ -42,32 +47,36 @@ async function createNewEscrow(
       creatorRole,
       counterpartyEmail: counterEmail,
       amount,
+      category,
+      escrowfeepayment,
       description,
       terms,
       status: "pending",
     });
 
-    await escrow.save();
+    await escrow.save({ session });
 
-    const escrowId = escrow._id;
-    const createdAt = escrow.createdAt;
+    user.escrows.push(escrow._id);
+    await user.save({ session });
 
-    // Send email to the creator
+    await session.commitTransaction();
+    session.endSession();
+
+    // Send emails outside the transaction
     try {
       await sendCreateEscrowEmail(
         creatorFirstName,
-        escrowId,
+        escrow._id,
         amount,
-        createdAt,
+        escrow.createdAt,
         creatorRole,
-        counterEmail,
+        creatorEmail,
         description
       );
     } catch (emailError) {
       console.error("Failed to send creator email:", emailError.message);
     }
 
-    // Try sending to counterparty
     try {
       const counterpartyUser = await User.findOne({ email: counterEmail });
       const counterpartyFirstName = counterpartyUser
@@ -77,9 +86,9 @@ async function createNewEscrow(
       await sendReceiveEscrowEmail(
         creatorFirstName,
         counterpartyFirstName,
-        escrowId,
+        escrow._id,
         amount,
-        createdAt,
+        escrow.createdAt,
         creatorRole,
         description,
         terms,
@@ -91,6 +100,8 @@ async function createNewEscrow(
 
     return escrow;
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Error in createNewEscrow:", error.message);
     throw new Error("Failed to create escrow: " + error.message);
   }
@@ -101,12 +112,15 @@ async function acceptNewEscrow(userId, escrowId) {
     throw new Error("Invalid escrow ID format");
   }
 
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const escrow = await Escrow.findById(escrowId);
+    const escrow = await Escrow.findById(escrowId).session(session);
     if (!escrow) throw new Error("Escrow not found");
     if (escrow.status === "active") throw new Error("Escrow already accepted");
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).session(session);
     if (!user) throw new Error("User not found");
 
     if (user.email.toLowerCase() !== escrow.counterpartyEmail.toLowerCase()) {
@@ -117,46 +131,44 @@ async function acceptNewEscrow(userId, escrowId) {
 
     const oppositeRole = escrow.creatorRole === "buyer" ? "seller" : "buyer";
 
-    // Update escrow parties and status
     escrow.counterparty = userId;
     escrow[escrow.creatorRole] = escrow.creator;
     escrow[oppositeRole] = userId;
     escrow.status = "active";
 
-    // CREATE chat when escrow is accepted
-    const newChat = await Chat.create({
-      escrow: escrow._id,
-      participants: [escrow.creator, userId],
-      chatActive: true,
-    });
+    const newChat = await Chat.create(
+      [
+        {
+          escrow: escrow._id,
+          participants: [escrow.creator, userId],
+          chatActive: true,
+        },
+      ],
+      { session }
+    );
 
-    //  Link chat to escrow
-    escrow.chat = newChat._id;
+    escrow.chat = newChat[0]._id;
     escrow.chatActive = true;
 
-    await escrow.save();
+    await escrow.save({ session });
 
-    // Populate the chat field when returning the escrow
-    const populatedEscrow = await Escrow.findById(escrow._id).populate("chat"); // Populating the chat field
+    user.escrows.push(escrow._id);
+    await user.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    const populatedEscrow = await Escrow.findById(escrow._id).populate("chat");
 
     return populatedEscrow;
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Error in acceptNewEscrow:", error.message);
     throw new Error("Failed to accept escrow: " + error.message);
   }
 }
 
-// async function getEscrowById(escrowId) {
-//   try {
-//     const escrow = await Escrow.findById(escrowId).populate("chat");
-//     if (!escrow) throw new Error("Escrow not found");
-
-//     return escrow;
-//   } catch (error) {
-//     console.error("Error in getEscrowById:", error.message);
-//     throw new Error("Failed to retrieve escrow: " + error.message);
-//   }
-// }
 async function getEscrowById(escrowId, userId) {
   if (!mongoose.Types.ObjectId.isValid(escrowId)) {
     throw new Error("Invalid escrow ID format");
@@ -193,8 +205,21 @@ async function getEscrowById(escrowId, userId) {
   }
 }
 
+async function getAllEscrows(userId) {
+  try {
+    const userEscrows = await User.findById(userId).populate("escrows");
+    if (!userEscrows) throw new Error("User not found");
+
+    return userEscrows.escrows;
+  } catch (error) {
+    console.error("Error in getEscrowAllEscrows:", error.message);
+    throw new Error("Failed to retrieve all escrows: " + error.message);
+  }
+}
+
 module.exports = {
   createNewEscrow,
   acceptNewEscrow,
   getEscrowById,
+  getAllEscrows,
 };

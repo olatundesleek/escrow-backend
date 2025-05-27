@@ -6,6 +6,7 @@ const {
   verifyEmail,
   resendVerificationEmail,
   resetPassword,
+  confirmResetToken,
 } = require("../controllers/authController");
 
 const router = express.Router();
@@ -20,8 +21,11 @@ router.post("/logout", logout);
 // Route for reseting password
 router.post("/reset-password", resetPassword);
 
-// Route for sending email verification
+// Route for resending email verification
 router.post("/send-verification-email", resendVerificationEmail);
+
+// Route for confirming password reset token
+router.get("/confirm-reset-token/:token", confirmResetToken);
 
 // Route for email verfification
 router.get("/verify-email/:token", verifyEmail);

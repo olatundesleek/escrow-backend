@@ -13,6 +13,7 @@ const escrowSchema = new mongoose.Schema(
     buyer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     seller: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     amount: { type: Number, required: true },
+    category: { type: String, required: true },
     terms: { type: [String], required: true },
     description: String,
 
@@ -26,7 +27,11 @@ const escrowSchema = new mongoose.Schema(
       enum: ["unpaid", "paid"],
       default: "unpaid",
     },
-
+    escrowfeepayment: {
+      type: String,
+      enum: ["buyer", "seller", "split"],
+      default: "buyer",
+    },
     chat: { type: mongoose.Schema.Types.ObjectId, ref: "Chat" }, //
     chatActive: { type: Boolean, default: false }, //
 

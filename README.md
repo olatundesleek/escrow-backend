@@ -15,27 +15,35 @@ The Escrow App is a web application designed to facilitate secure transactions b
 ## Directory Structure
 
 ```
-escrow-app
+escrow-backend
 ├── controllers
 │   ├── authController.js
 │   ├── escrowController.js
 │   ├── paymentController.js
-│   └── disputeController.js
+│   ├── disputeController.js
+│   ├── profileController.js
+│   └── siteController.js
 ├── routes
 │   ├── authRoutes.js
 │   ├── escrowRoutes.js
 │   ├── paymentRoutes.js
-│   └── disputeRoutes.js
+│   ├── disputeRoutes.js
+│   ├── profileRoutes.js
+│   └── siteRoutes.js
 ├── models
 │   ├── User.js
 │   ├── Escrow.js
 │   ├── Dispute.js
-│   └── transaction.js
+│   ├── Transaction.js
+│   ├── Wallet.js
+│   └── SiteSettings.js
 ├── middleware
 │   └── authMiddleware.js
 ├── services
 │   ├── userServices.js
-│   └── escrowServices.js
+│   ├── escrowServices.js
+│   ├── profileServices.js
+│   └── paymentGateway.js
 ├── utils
 │   └── paymentGateway.js
 ├── Email
@@ -84,11 +92,174 @@ Ensure the following environment variables are set in your `.env` file:
 
 ## API Endpoints
 
+### Site Settings
+
+#### Get Site Settings
+
+- **Endpoint**: `GET /api/site/info`
+- **Description**: Fetch the current site settings.
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "siteName": "Escrow App",
+      "siteLogo": "https://example.com/logo.png",
+      "siteDescription": "A secure escrow service platform.",
+      "siteUrl": "https://example.com",
+      "siteEmail": "support@example.com",
+      "sitePhone": "+1234567890",
+      "siteAddress": "123 Main Street, City, Country",
+      "socialMediaLinks": {
+        "facebook": "https://facebook.com/example",
+        "twitter": "https://twitter.com/example",
+        "instagram": "https://instagram.com/example"
+      },
+      "siteColors": {
+        "primary": "#123456",
+        "secondary": "#654321",
+        "background": "#ffffff",
+        "text_color": "#000000"
+      },
+      "maintenanceMode": {
+        "enabled": false,
+        "message": "The site is under maintenance. Please check back later."
+      }
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "message": "Site settings not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error fetching site settings",
+      "error": "Internal server error"
+    }
+    ```
+
+#### Update Site Settings
+
+- **Endpoint**: `PUT /api/site/settings`
+- **Description**: Update the site settings.
+- **Request Body**:
+  ```json
+  {
+    "siteName": "New Escrow App",
+    "siteLogo": "https://example.com/new-logo.png",
+    "siteDescription": "An updated secure escrow service platform.",
+    "siteUrl": "https://newexample.com",
+    "siteEmail": "new-support@example.com",
+    "sitePhone": "+9876543210",
+    "siteAddress": "456 Another Street, City, Country",
+    "socialMediaLinks": {
+      "facebook": "https://facebook.com/newexample",
+      "twitter": "https://twitter.com/newexample"
+    },
+    "siteColors": {
+      "primary": "#abcdef",
+      "secondary": "#fedcba",
+      "background": "#f0f0f0",
+      "text_color": "#333333"
+    },
+    "maintenanceMode": {
+      "enabled": true,
+      "message": "We are currently performing maintenance. Please check back soon."
+    }
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Site settings updated successfully",
+      "updatedSettings": {
+        "siteName": "New Escrow App",
+        "siteLogo": "https://example.com/new-logo.png",
+        "siteDescription": "An updated secure escrow service platform.",
+        "siteUrl": "https://newexample.com",
+        "siteEmail": "new-support@example.com",
+        "sitePhone": "+9876543210",
+        "siteAddress": "456 Another Street, City, Country",
+        "socialMediaLinks": {
+          "facebook": "https://facebook.com/newexample",
+          "twitter": "https://twitter.com/newexample"
+        },
+        "siteColors": {
+          "primary": "#abcdef",
+          "secondary": "#fedcba",
+          "background": "#f0f0f0",
+          "text_color": "#333333"
+        },
+        "maintenanceMode": {
+          "enabled": true,
+          "message": "We are currently performing maintenance. Please check back soon."
+        }
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error: [specific validation error message]"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error updating site settings",
+      "error": "Internal server error"
+    }
+    ```
+
+#### Enable Maintenance Mode
+
+- **Endpoint**: `PUT /api/site/maintenance`
+- **Description**: Enable or disable maintenance mode for the site.
+- **Request Body**:
+  ```json
+  {
+    "enabled": true,
+    "message": "The site is under maintenance. Please check back later."
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Maintenance mode updated successfully",
+      "updatedSettings": {
+        "maintenanceMode": {
+          "enabled": true,
+          "message": "The site is under maintenance. Please check back later."
+        }
+      }
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "message": "Site settings not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error updating maintenance mode",
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
 ### Authentication
 
 #### Register a New User
 
 - **Endpoint**: `POST /api/auth/register`
+- **Description**: Register a new user.
 - **Request Body**:
   ```json
   {
@@ -107,22 +278,34 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "User registered successfully. Verification email sent."
     }
     ```
-  - Error (400/409):
+  - Error (400):
     ```json
     {
       "success": false,
-      "message": "Validation error or Email/Username already in use"
+      "message": "Validation error",
+      "details": ["Error details here"]
     }
     ```
+  - Error (409):
+    ```json
+    {
+      "success": false,
+      "message": "Email or username already in use"
+    }
+    ```
+
+---
 
 #### Login a User
 
 - **Endpoint**: `POST /api/auth/login`
+- **Description**: Log in an existing user.
 - **Request Body**:
   ```json
   {
     "username": "johndoe",
-    "password": "password123"
+    "password": "password123",
+    "rememberme": true
   }
   ```
 - **Response**:
@@ -133,17 +316,35 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Login successful"
     }
     ```
-  - Error (401/403):
+  - Error (400):
     ```json
     {
       "success": false,
-      "message": "Invalid credentials or account not verified"
+      "message": "Validation error",
+      "details": ["Error details here"]
     }
     ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "Invalid credentials"
+    }
+    ```
+  - Error (403):
+    ```json
+    {
+      "success": false,
+      "message": "Account is not active. Please verify your email."
+    }
+    ```
+
+---
 
 #### Logout a User
 
 - **Endpoint**: `POST /api/auth/logout`
+- **Description**: Log out the currently authenticated user.
 - **Response**:
   - Success (200):
     ```json
@@ -153,9 +354,12 @@ Ensure the following environment variables are set in your `.env` file:
     }
     ```
 
+---
+
 #### Verify Email
 
 - **Endpoint**: `GET /api/auth/verify-email/:token`
+- **Description**: Verify a user's email using a token.
 - **Response**:
   - Success (200):
     ```json
@@ -164,11 +368,155 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Email verified successfully"
     }
     ```
-  - Error (400/404):
+  - Error (400):
     ```json
     {
       "success": false,
       "message": "Invalid or expired verification token"
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "User not found"
+    }
+    ```
+
+---
+
+#### Resend Verification Email
+
+- **Endpoint**: `POST /api/auth/send-verification-email`
+- **Description**: Resend the email verification link to a user.
+- **Request Body**:
+  ```json
+  {
+    "email": "johndoe@example.com"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Verification email resent successfully"
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "User not found"
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Account is already verified"
+    }
+    ```
+
+---
+
+#### Reset Password
+
+- **Endpoint**: `POST /api/auth/reset-password`
+- **Description**: Request a password reset email.
+- **Request Body**:
+  ```json
+  {
+    "email": "johndoe@example.com"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "If an account with johndoe@example.com exists, you will receive a password reset email."
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to process password reset request"
+    }
+    ```
+
+---
+
+#### verify a logged in user
+
+- **Endpoint**: `GET /api/me`
+- **Description**: Confirm if a user is authenticated.
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "User is authenticated",
+      "authenticated": true
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "No token provided",
+      "authenticated": false
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to validate token"
+    }
+    ```
+
+---
+
+#### Confirm Reset Token
+
+- **Endpoint**: `GET /api/auth/confirm-reset-token/:token`
+- **Description**: Confirm the validity of a password reset token.
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Token is valid"
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Invalid or expired token"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to validate token"
     }
     ```
 
@@ -179,12 +527,17 @@ Ensure the following environment variables are set in your `.env` file:
 #### Create a New Escrow
 
 - **Endpoint**: `POST /api/escrow`
+- **Description**: Create a new escrow transaction.
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
     "creatorRole": "buyer",
     "counterpartyEmail": "seller@example.com",
     "amount": 5000,
+    "category": "services",
+    "escrowfeepayment": "creator",
     "description": "Payment for services",
     "terms": ["Deliver project files", "Provide support for 30 days"]
   }
@@ -195,23 +548,76 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "message": "Escrow created successfully",
       "escrow": {
-        "id": "12345",
+        "_id": "12345",
         "creatorRole": "buyer",
+        "counterpartyEmail": "seller@example.com",
         "amount": 5000,
+        "category": "services",
+        "escrowfeepayment": "creator",
+        "description": "Payment for services",
+        "terms": ["Deliver project files", "Provide support for 30 days"],
         "status": "pending"
       }
     }
     ```
-  - Error (400/500):
+  - Error (400):
     ```json
     {
-      "message": "Validation error or Internal server error"
+      "message": "Validation error",
+      "details": ["Error details here"]
     }
     ```
+  - Error (500):
+    ```json
+    {
+      "message": "Failed to create escrow: [error message]"
+    }
+    ```
+
+---
+
+#### Get All Escrows for User
+
+- **Endpoint**: `GET /api/escrow`
+- **Description**: Retrieve all escrows associated with the authenticated user.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "escrows": [
+        {
+          "_id": "12345",
+          "creatorRole": "buyer",
+          "amount": 5000,
+          "status": "pending"
+        }
+        // ...more escrows
+      ]
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "message": "User not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Failed to retrieve all escrows: [error message]"
+    }
+    ```
+
+---
 
 #### Accept an Escrow
 
 - **Endpoint**: `POST /api/acceptescrow`
+- **Description**: Accept an escrow invitation as the counterparty.
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
@@ -224,43 +630,78 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "message": "Escrow accepted successfully",
       "escrow": {
-        "id": "12345",
+        "_id": "12345",
         "status": "active"
+        // ...other escrow fields
       }
     }
     ```
-  - Error (400/500):
+  - Error (400):
     ```json
     {
-      "message": "Validation error or Internal server error"
+      "message": "Validation error or Unauthorized: Your email does not match the counterparty email"
     }
     ```
+  - Error (500):
+    ```json
+    {
+      "message": "Failed to accept escrow: [error message]"
+    }
+    ```
+
+---
 
 #### Get Escrow Details
 
 - **Endpoint**: `GET /api/escrow/:id`
+- **Description**: Retrieve details of a specific escrow by its ID.
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Response**:
   - Success (200):
     ```json
     {
       "escrow": {
-        "id": "12345",
+        "_id": "12345",
         "creatorRole": "buyer",
+        "counterpartyEmail": "seller@example.com",
         "amount": 5000,
+        "category": "services",
+        "escrowfeepayment": "creator",
+        "description": "Payment for services",
+        "terms": ["Deliver project files", "Provide support for 30 days"],
         "status": "active"
+        // ...other escrow fields
       }
     }
     ```
-  - Error (404/500):
+  - Error (404):
     ```json
     {
-      "message": "Escrow not found or Internal server error"
+      "message": "Escrow not found"
     }
     ```
+  - Error (403):
+    ```json
+    {
+      "message": "Unauthorized: You do not have permission to access this escrow"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Failed to retrieve escrow: [error message]"
+    }
+    ```
+
+---
 
 #### Update an Escrow
 
 - **Endpoint**: `PUT /api/escrow/:id`
+- **Description**: Update an existing escrow transaction.
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
@@ -274,16 +715,23 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "message": "Escrow updated successfully",
       "escrow": {
-        "id": "12345",
+        "_id": "12345",
         "amount": 6000,
         "status": "completed"
+        // ...other escrow fields
       }
     }
     ```
-  - Error (404/500):
+  - Error (404):
     ```json
     {
-      "message": "Escrow not found or Internal server error"
+      "message": "Escrow not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Failed to update escrow: [error message]"
     }
     ```
 
@@ -444,6 +892,156 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Dispute not found or Internal server error"
     }
     ```
+
+---
+
+### User Dashboard
+
+#### Get User Dashboard
+
+- **Endpoint**: `GET /api/dashboard`
+- **Description**: Retrieve dashboard data for the authenticated user, including escrows, transactions, disputes, and wallet info.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "data": {
+        "_id": "userId",
+        "firstname": "John",
+        "lastname": "Doe",
+        "username": "johndoe",
+        "email": "johndoe@example.com",
+        "escrows": [
+          /* array of escrow objects */
+        ],
+        "transactions": [
+          /* array of transaction objects */
+        ],
+        "disputes": [
+          /* array of dispute objects */
+        ],
+        "wallet": {
+          /* wallet object */
+        }
+      }
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "User not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to fetch user data"
+    }
+    ```
+
+---
+
+### Admin
+
+#### Get Admin Dashboard
+
+- **Endpoint**: `GET /api/admin/dashboard`
+- **Description**: Retrieve admin dashboard statistics. Requires admin authentication and appropriate admin role.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Dashboard details fetched successfully",
+      "dashboardDetails": {
+        "success": true,
+        "message": "Dashboard data fetched successfully",
+        "data": {
+          "totalUsers": 100,
+          "totalDisputes": 5,
+          "totalEscrows": 50,
+          "escrowStatus": {
+            "pending": 10,
+            "active": 20,
+            "completed": 15,
+            "disputed": 5
+          },
+          "totalTransactions": 200,
+          "wallet": {
+            "totalAvailable": 10000,
+            "totalLocked": 2000,
+            "total": 12000
+          }
+        }
+      }
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error fetching dashboard details",
+      "error": "Error message"
+    }
+    ```
+
+---
+
+#### Get All Escrows (Admin)
+
+- **Endpoint**: `GET /api/admin/escrows`
+- **Description**: Retrieve all escrows with optional filters. Requires admin authentication and appropriate admin role.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Query Parameters**:
+  - `status` (optional): Filter by escrow status (`pending`, `active`, `completed`, `disputed`)
+  - `username` (optional): Filter by username (creator or counterparty)
+  - `page` (optional): Page number (default: 1)
+  - `limit` (optional): Results per page (default: 10)
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Escrow details fetched successfully",
+      "escrowDetails": {
+        "data": {
+          "escrows": [
+            {
+              "_id": "escrowId",
+              "creator": {
+                /* user object */
+              },
+              "counterparty": {
+                /* user object */
+              },
+              "amount": 5000,
+              "status": "active"
+              // ...other escrow fields
+            }
+            // ...more escrows
+          ],
+          "totalPages": 5,
+          "currentPage": 1
+        }
+      }
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error fetching escrow details",
+      "error": "Error message"
+    }
+    ```
+
+---
 
 ## Contributing
 

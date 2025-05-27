@@ -16,10 +16,12 @@ if (!isProduction) {
 // Create email transporter dynamically
 const transporter = isProduction
   ? nodemailer.createTransport({
-      service: "gmail",
+      host: process.env.SMTP_HOST,
+      secure: process.env.SMTP_SECURE === "true",
+      port: Number(process.env.SMTP_PORT),
       auth: {
-        user: process.env.GMAIL_USER, // Set in Vercel environment
-        pass: process.env.GMAIL_PASS, // Use an app password if needed
+        user: process.env.USER,
+        pass: process.env.PASS,
       },
     })
   : nodemailer.createTransport({
@@ -60,7 +62,7 @@ async function sendPasswordChangedEmail(user, email) {
 
 async function sendUserRegisterationEmail(username, email, token) {
   try {
-    const subject = "Welcome to My Naija Escrow";
+    const subject = "Welcome to Naija Escrow";
     const html = generateUserRegisterationEmail(username, token);
     await transporter.sendMail({
       from: process.env.EMAIL,

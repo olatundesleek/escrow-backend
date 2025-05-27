@@ -31,13 +31,13 @@ const generateCounterpartyEscrowEmail = (
         padding: 20px;
       }
       h1 {
-        color: #9af039;
+        color:rgb(0, 0, 0);
         font-size: 24px;
         margin-bottom: 20px;
       }
       p {
         font-size: 16px;
-        line-height: 1.6;
+        line-height: 1.15;
       }
       strong {
         color: #333;
@@ -54,12 +54,12 @@ const generateCounterpartyEscrowEmail = (
         padding: 15px;
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin-top: 20px;
+        margin-top: 5px;
       }
       .cta-button {
         display: inline-block;
         background-color: #007bff;
-        color: white;
+        color: #ffffff !important;
         padding: 12px 24px;
         text-decoration: none;
         border-radius: 5px;
@@ -79,7 +79,7 @@ const generateCounterpartyEscrowEmail = (
     </style>
   </head>
   <body>
-    <h1>Escrow Transaction Created - Confirmation Needed</h1>
+    <h1>Escrow Transaction Received - Confirmation Needed</h1>
     <p>Dear ${counterpartyFirstName},</p>
 
     <p>
@@ -88,8 +88,6 @@ const generateCounterpartyEscrowEmail = (
     </p>
 
     <div class="details-list">
-      <p><strong>Your Role:</strong> ${userRoleDescription}</p>
-      <p><strong>Counterparty Role:</strong> ${counterpartyRoleDescription}</p>
       <p>
         <strong>Escrow Process:</strong> Funds are securely held in escrow until
         both parties fulfill their obligations. Once confirmed, the funds will
@@ -119,15 +117,12 @@ const generateCounterpartyEscrowEmail = (
         ${formattedTerms}
       </ul>
     </div>
-
-    <p>
+ <p>
       To continue with this transaction, please confirm your participation by
       clicking the button below:
-    </p>
-
-    <a target="_blank" href="http://${link}" class="cta-button">Confirm Transaction</a>
-
-    <p>
+</p>
+<a target="_blank" href="http://${link}" class="cta-button">Confirm Transaction</a>
+ <p>
       If you have any questions or concerns, don’t hesitate to contact our
       support team.
     </p>

@@ -6,6 +6,7 @@ var cors = require("cors");
 const allowedOrigins = [
   "http://localhost:3000",
   "https://escrow-rouge.vercel.app",
+  "*.vercel.app",
 ];
 
 app.use(
@@ -13,7 +14,10 @@ app.use(
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
+      if (
+        allowedOrigins.includes(origin) ||
+        /^https:\/\/.*\.vercel\.app$/.test(origin)
+      ) {
         return callback(null, true);
       } else {
         return callback(new Error("Not allowed by CORS"));

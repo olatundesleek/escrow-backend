@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Escrow = require("../models/Escrow");
 const User = require("../models/User");
 const Chat = require("../models/Chat");
+const { getIo, getConnectedUsers } = require("../sockets/socket");
 const {
   sendCreateEscrowEmail,
   sendReceiveEscrowEmail,
@@ -157,6 +158,23 @@ async function acceptNewEscrow(userId, escrowId) {
 
     await session.commitTransaction();
     session.endSession();
+
+    const userIds = [escrow.buyer.toString(), escrow.seller.toString()];
+
+    try {
+      const connectedUsers = getConnectedUsers();
+      userIds.forEach((userId) => {
+        const socketId = connectedUsers.get(userId);
+        if (socketId) {
+          getIo().to(socketId).emit("escrowUpdated", {
+            escrowId,
+            data: escrow,
+          });
+        }
+      });
+    } catch (err) {
+      console.error("Failed to emit escrow update via socket:", err.message);
+    }
 
     const populatedEscrow = await Escrow.findById(escrow._id).populate("chat");
 

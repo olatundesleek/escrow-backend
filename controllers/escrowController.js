@@ -6,7 +6,7 @@ const {
   getEscrowById,
   getAllEscrows,
 } = require("../services/escrowServices.js");
-
+const io = require("../server").io; // Import the io instance from server.js
 // Joi schemas
 const createEscrowSchema = Joi.object({
   creatorRole: Joi.string().valid("buyer", "seller").required(),
@@ -111,6 +111,11 @@ const acceptEscrow = async (req, res) => {
   try {
     const userId = req.userId;
     const escrow = await acceptNewEscrow(userId, escrowId);
+    io.emit("escrowAccepted", {
+      message: "Escrow accepted",
+      escrowId: escrow._id,
+      userId: userId,
+    });
 
     return res.status(200).json({
       message: "Escrow accepted successfully",

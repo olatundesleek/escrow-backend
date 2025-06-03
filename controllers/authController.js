@@ -8,6 +8,7 @@ const {
   sendUserRegisterationEmail,
   sendPasswordResetEmail,
 } = require("../Email/email");
+const { signInToken } = require("../utils/jwt");
 
 // Joi schemas
 const registerSchema = Joi.object({
@@ -305,6 +306,7 @@ const login = async (req, res) => {
   const { username, password, rememberme } = req.body;
 
   try {
+    console.log("rememberme:", rememberme);
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(404).json({
@@ -320,6 +322,14 @@ const login = async (req, res) => {
         email: user.email,
       });
     }
+    // Check if the user is banned
+
+    if (user.status == "suspended") {
+      return res.status(403).json({
+        success: false,
+        message: "Account is suspended. Please contact customer care.",
+      });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -332,39 +342,33 @@ const login = async (req, res) => {
     let token;
     console.log(user.role);
     if (user.role === "user") {
-      token = jwt.sign(
-        {
-          id: user._id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-        },
-        process.env.JWT_SIGNIN_SECRET.replace(/\\n/g, "\n"),
-        { algorithm: "RS256", expiresIn: expiresIn }
-      );
+      const payload = {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      };
+      token = await signInToken(payload, expiresIn);
     } else {
-      token = jwt.sign(
-        {
-          id: user._id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-          subRole: user.subRole,
-        },
-        process.env.JWT_SIGNIN_SECRET.replace(/\\n/g, "\n"),
-        { algorithm: "RS256", expiresIn: expiresIn }
-      );
+      const payload = {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        subRole: user.subRole,
+      };
+      token = await signInToken(payload, expiresIn);
     }
 
-    // const isProduction = process.env.NODE_ENV === "production";
+    const isProduction = process.env.NODE_ENV === "production";
 
-    // res.cookie("token", token, {
-    //   httpOnly: true,
-    //   secure: isProduction, // Only secure in production (requires HTTPS)
-    //   sameSite: isProduction ? "none" : "lax", // "none" for cross-site in prod, "lax" to avoid rejection in dev
-    //   maxAge: 3600000, // 1 hour in milliseconds
-    //   path: "/", // Ensure it's sent on all routes
-    // });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isProduction, // Only secure in production (requires HTTPS)
+      sameSite: isProduction ? "none" : "lax", // "none" for cross-site in prod, "lax" to avoid rejection in dev
+      maxAge: rememberme ? 5 * 24 * 60 * 60 * 1000 : 3600000, // 5 days or 1 hour in milliseconds
+      path: "/", // Ensure it's sent on all routes
+    });
 
     res.status(200).json({
       success: true,

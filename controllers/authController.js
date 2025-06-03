@@ -315,7 +315,7 @@ const login = async (req, res) => {
 
     const isProduction = process.env.NODE_ENV === "production";
 
-    res.cookie("token", token, {
+    res.cookie("req-token", token, {
       httpOnly: true,
       secure: isProduction, // Only secure in production (requires HTTPS)
       sameSite: isProduction ? "none" : "lax", // "none" for cross-site in prod, "lax" to avoid rejection in dev
@@ -375,7 +375,7 @@ const verifyEmail = async (req, res) => {
 // Logout
 const logout = (req, res) => {
   const isProduction = process.env.NODE_ENV === "production";
-  res.clearCookie("token", {
+  res.clearCookie("req-token", {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",

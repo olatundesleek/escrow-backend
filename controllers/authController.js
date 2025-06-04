@@ -348,7 +348,7 @@ const login = async (req, res) => {
         email: user.email,
         role: user.role,
       };
-      token = await signInToken(payload, expiresIn);
+      token = signInToken(payload, expiresIn);
     } else {
       const payload = {
         id: user._id,
@@ -357,12 +357,12 @@ const login = async (req, res) => {
         role: user.role,
         subRole: user.subRole,
       };
-      token = await signInToken(payload, expiresIn);
+      token = signInToken(payload, expiresIn);
     }
 
     const isProduction = process.env.NODE_ENV === "production";
 
-    res.cookie("req-token", token, {
+    res.cookie("reqtoken", token, {
       httpOnly: true,
       secure: isProduction, // Only secure in production (requires HTTPS)
       sameSite: isProduction ? "none" : "lax", // "none" for cross-site in prod, "lax" to avoid rejection in dev
@@ -422,11 +422,15 @@ const verifyEmail = async (req, res) => {
 // Logout
 const logout = (req, res) => {
   const isProduction = process.env.NODE_ENV === "production";
-  res.clearCookie("req-token", {
-    httpOnly: true,
+
+  res.clearCookie("reqtoken", {
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
     path: "/",
+  });
+  res.status(200).json({
+    success: true,
+    message: "logged out successfully",
   });
 };
 

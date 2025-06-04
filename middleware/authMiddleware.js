@@ -1,10 +1,12 @@
-const jwt = require("jsonwebtoken");
+// const jwt = require("jsonwebtoken");
 const cookie = require("cookie");
 const User = require("../models/User");
 const { verifySignInToken } = require("../utils/jwt");
 
 const authMiddleware = async (req, res, next) => {
-  const token = req.cookies.token;
+  const token = req.cookies.reqtoken;
+
+  console.log("Token from cookies:", token);
 
   if (!token) {
     return res
@@ -60,14 +62,13 @@ const isAdmin = (req, res, next) => {
 
 const verifySocketToken = async (socket, next) => {
   const rawCookies = socket.handshake.auth?.token;
-  console.log("Raw cookies from socket:", socket.handshake);
-  console.log("Raw cookies from socket:", rawCookies);
-  if (!rawCookies) return next(new Error("Authentication error"));
-  const parsedCookies = cookie.parse(rawCookies);
-  const token = parsedCookies.token;
-  if (!token) return next(new Error("Authentication error"));
+
+  if (!rawCookies) return next(new Error("Authentication error,no token sent"));
+
+  const ptoken = rawCookies; // Assuming the token is directly passed in auth field
+  console.log("Parsed token from socket:", ptoken);
   try {
-    const decoded = verifySignInToken(token);
+    const decoded = verifySignInToken(ptoken);
     if (!decoded) return next(new Error("Authentication error"));
 
     const user = await User.findById(decoded.id);

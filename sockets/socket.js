@@ -27,7 +27,7 @@ function initSocket(server) {
       credentials: true,
     },
   });
-  console.log("got here in socket.js initSocket");
+
   io.use(verifySocketToken);
 
   io.on("connection", (socket) => {
@@ -52,7 +52,7 @@ function initSocket(server) {
     // Optional: Handle chat
     socket.on("sendMessage", ({ escrowId, message }) => {
       io.to(`escrow-${escrowId}`).emit("newMessage", {
-        userId: socket.userId,
+        username: socket.username,
         message,
         timestamp: new Date(),
       });

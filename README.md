@@ -1,5 +1,27 @@
 # Escrow App
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Directory Structure](#directory-structure)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Environment Variables](#environment-variables)
+- [API Endpoints](#api-endpoints)
+  - [Site Settings](#site-settings)
+  - [Authentication](#authentication)
+  - [Escrow](#escrow)
+  - [Payment](#payment)
+  - [Dispute](#dispute)
+  - [User Dashboard](#user-dashboard)
+  - [Admin](#admin)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+
+---
+
 ## Overview
 
 The Escrow App is a web application designed to facilitate secure transactions between parties using an escrow service. It provides functionalities for user authentication, escrow management, payment processing, and dispute resolution.
@@ -17,33 +39,36 @@ The Escrow App is a web application designed to facilitate secure transactions b
 ```
 escrow-backend
 ├── controllers
+│   ├── adminController.js
 │   ├── authController.js
+│   ├── disputeController.js
 │   ├── escrowController.js
 │   ├── paymentController.js
-│   ├── disputeController.js
 │   ├── profileController.js
 │   └── siteController.js
 ├── routes
+│   ├── adminRoutes.js
 │   ├── authRoutes.js
+│   ├── disputeRoutes.js
 │   ├── escrowRoutes.js
 │   ├── paymentRoutes.js
-│   ├── disputeRoutes.js
 │   ├── profileRoutes.js
 │   └── siteRoutes.js
 ├── models
-│   ├── User.js
-│   ├── Escrow.js
 │   ├── Dispute.js
+│   ├── Escrow.js
+│   ├── SiteSettings.js
 │   ├── Transaction.js
-│   ├── Wallet.js
-│   └── SiteSettings.js
+│   ├── User.js
+│   └── Wallet.js
 ├── middleware
 │   └── authMiddleware.js
 ├── services
-│   ├── userServices.js
+│   ├── adminServices.js
 │   ├── escrowServices.js
+│   ├── paymentGateway.js
 │   ├── profileServices.js
-│   └── paymentGateway.js
+│   └── userServices.js
 ├── utils
 │   └── paymentGateway.js
 ├── Email
@@ -89,6 +114,8 @@ Ensure the following environment variables are set in your `.env` file:
 - `GMAIL_PASS`: Gmail app password (production).
 - `NODE_ENV`: Set to `development` or `production`.
 - `WEBLINK`: Base URL for email verification links.
+
+---
 
 ## API Endpoints
 
@@ -1039,7 +1066,6 @@ Ensure the following environment variables are set in your `.env` file:
   `Authorization: Bearer <token>`
 - **Query Parameters**:
   - `status` (optional): Filter by escrow status (`pending`, `active`, `completed`, `disputed`)
-  - `username` (optional): Filter by username (creator or counterparty)
   - `page` (optional): Page number (default: 1)
   - `limit` (optional): Results per page (default: 10)
 - **Response**:
@@ -1053,12 +1079,8 @@ Ensure the following environment variables are set in your `.env` file:
           "escrows": [
             {
               "_id": "escrowId",
-              "creator": {
-                /* user object */
-              },
-              "counterparty": {
-                /* user object */
-              },
+              "creator": { /* user object */ },
+              "counterparty": { /* user object */ },
               "amount": 5000,
               "status": "active"
               // ...other escrow fields
@@ -1076,6 +1098,103 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": false,
       "message": "Error fetching escrow details",
+      "error": "Error message"
+    }
+    ```
+
+---
+
+#### Get All Transactions (Admin)
+
+- **Endpoint**: `GET /api/admin/transactions`
+- **Description**: Retrieve all transactions with pagination. Requires admin authentication and appropriate admin role.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Query Parameters**:
+  - `page` (optional): Page number (default: 1)
+  - `limit` (optional): Results per page (default: 10)
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Transaction details fetched successfully",
+      "transactionDetails": {
+        // ...transaction data
+      }
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error fetching transaction details",
+      "error": "Error message"
+    }
+    ```
+
+---
+
+#### Get All Users (Admin)
+
+- **Endpoint**: `GET /api/admin/users`
+- **Description**: Retrieve all users with pagination. Requires admin authentication and appropriate admin role.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Query Parameters**:
+  - `page` (optional): Page number (default: 1)
+  - `limit` (optional): Results per page (default: 10)
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "User details fetched successfully",
+      "userDetails": {
+        // ...user data
+      }
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error fetching user details",
+      "error": "Error message"
+    }
+    ```
+
+---
+
+#### Get Single User (Admin)
+
+- **Endpoint**: `GET /api/admin/user/:username`
+- **Description**: Retrieve details for a single user by username. Requires admin authentication and appropriate admin role.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "User details fetched successfully",
+      "userDetails": {
+        // ...user data
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error fetching user details",
       "error": "Error message"
     }
     ```

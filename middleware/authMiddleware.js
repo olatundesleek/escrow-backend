@@ -6,8 +6,6 @@ const { verifySignInToken } = require("../utils/jwt");
 const authMiddleware = async (req, res, next) => {
   const token = req.cookies.reqtoken;
 
-  console.log("Token from cookies:", token);
-
   if (!token) {
     return res
       .status(403)
@@ -28,23 +26,6 @@ const authMiddleware = async (req, res, next) => {
 
   next();
 };
-
-//   process.env.JWT_SIGNIN_SECRET.replace(/\\n/g, "\n"),
-//   { algorithms: ["RS256"] },
-//   (err, decoded) => {
-//     if (err) {
-//       return res.status(401).json({
-//         success: false,
-//         message: "Unauthorized",
-//       });
-//     }
-//     req.userId = decoded.id;
-//     req.subRole = decoded.subRole;
-//     req.role = decoded.role;
-
-//     next();
-//   }
-// );
 
 const isAdmin = (req, res, next) => {
   User.findById(req.userId, (err, user) => {

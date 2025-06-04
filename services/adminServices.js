@@ -11,6 +11,7 @@ async function getAdminDashboardData(subRole) {
       totalTransactions,
       totalEscrows,
       totalDisputes,
+      transactions,
       walletStats,
       escrowStatusStats,
     ] = await Promise.all([
@@ -18,6 +19,10 @@ async function getAdminDashboardData(subRole) {
       Transaction.countDocuments(),
       Escrow.countDocuments(),
       Dispute.countDocuments(),
+      Transaction.find()
+        .populate("user", "username")
+        .sort({ createdAt: -1 })
+        .limit(10),
       Wallet.aggregate([
         {
           $group: {
@@ -71,6 +76,14 @@ async function getAdminDashboardData(subRole) {
       totalUsers,
       totalDisputes,
       totalEscrows,
+      transactions: transactions.map((transaction) => ({
+        id: transaction._id,
+        user: transaction.user.username,
+        type: transaction.type,
+        amount: transaction.amount,
+        status: transaction.status,
+        createdAt: transaction.createdAt,
+      })),
       escrowStatus: escrowCounts,
     };
 
@@ -149,7 +162,79 @@ const getAllEscrows = async (params) => {
   }
 };
 
+const getAllTransactions = async (params) => {
+  try {
+    const { page = 1, limit = 10 } = params;
+
+    const totalTransactions = await Transaction.countDocuments();
+
+    const transactions = await Transaction.find()
+      .populate("user", "username")
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
+
+    return {
+      data: {
+        transactions,
+        totalPages: Math.ceil(totalTransactions / limit),
+        currentPage: Number(page),
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching all transactions:", error);
+    return {
+      error: error.message,
+    };
+  }
+};
+
+const getAllUsers = async (params) => {
+  try {
+    const { page = 1, limit = 10 } = params;
+
+    const totalUsers = await User.countDocuments();
+
+    const users = await User.find()
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
+
+    return {
+      data: {
+        users,
+        totalPages: Math.ceil(totalUsers / limit),
+        currentPage: Number(page),
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching all users:", error);
+    return {
+      error: error.message,
+    };
+  }
+};
+
+const getUser = async (username) => {
+  try {
+    const user = await User.findOne({ username }, "-password")
+      .populate("wallet")
+      .populate("escrows")
+      .populate("transactions");
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user;
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   getAdminDashboardData,
   getAllEscrows,
+  getAllTransactions,
+  getAllUsers,
+  getUser,
 };

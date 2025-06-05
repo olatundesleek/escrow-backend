@@ -1,3 +1,7 @@
+if (process.env.NODE_ENV !== "production") {
+  const envFile = `.env.${process.env.NODE_ENV || "development"}`;
+  require("dotenv").config({ path: envFile });
+}
 const mongoose = require("mongoose");
 const http = require("http");
 const app = require("./app");
@@ -7,11 +11,6 @@ const { initSocket } = require("./sockets/socket"); // Import the socket initial
 const server = http.createServer(app); // Create an HTTP server using Express
 
 initSocket(server); // Initialize socket.io with the server
-
-if (process.env.NODE_ENV !== "production") {
-  const envFile = `.env.${process.env.NODE_ENV || "development"}`;
-  require("dotenv").config({ path: envFile });
-}
 
 // const userSocketMap = new Map(); // userId -> socket.id
 

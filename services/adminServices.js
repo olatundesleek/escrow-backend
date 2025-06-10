@@ -230,6 +230,52 @@ const getUser = async (username) => {
     throw error;
   }
 };
+const performUserAction = async (username, action, subRole) => {
+  try {
+    const user = await User.findOne({ username });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    switch (action) {
+      case "activate":
+        if (user.status === "active") {
+          throw new Error("User is already active");
+        }
+        user.status = "active";
+
+        break;
+      case "suspend":
+        if (user.status === "suspended") {
+          throw new Error("User is already suspended");
+        }
+        user.status = "suspended";
+        break;
+      case "delete":
+        if (subRole !== "super_admin") {
+          throw new Error("only super admins can delete users");
+        }
+        await User.deleteOne({ _id: user._id });
+        return { success: true, message: "User deleted successfully" };
+      default:
+        throw new Error("Invalid action");
+    }
+
+    await user.save();
+    let message;
+    if (action === "activate") {
+      message = "User activated successfully";
+    } else if (action === "suspend") {
+      message = "User suspended successfully";
+    } else if (action === "delete") {
+      message = "User deleted successfully";
+    }
+    return { success: true, message: message };
+  } catch (error) {
+    console.error("Error performing user action:", error);
+    return { success: false, message: error.message };
+  }
+};
 
 module.exports = {
   getAdminDashboardData,
@@ -237,4 +283,5 @@ module.exports = {
   getAllTransactions,
   getAllUsers,
   getUser,
+  performUserAction,
 };

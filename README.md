@@ -155,23 +155,20 @@ Ensure the following environment variables are set in your `.env` file:
     ```
   - Error (404):
     ```json
-    {
-      "message": "Site settings not found"
-    }
+    { "message": "Site settings not found" }
     ```
   - Error (500):
     ```json
-    {
-      "message": "Error fetching site settings",
-      "error": "Internal server error"
-    }
+    { "message": "Error fetching site settings", "error": "Internal server error" }
     ```
 
 #### Update Site Settings
 
-- **Endpoint**: `PUT /api/site/settings`
-- **Description**: Update the site settings.
-- **Request Body**:
+- **Endpoint**: `PUT /api/settings`
+- **Description**: Update the site settings. Requires admin authentication.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**: (as JSON or multipart/form-data for logo upload)
   ```json
   {
     "siteName": "New Escrow App",
@@ -202,49 +199,24 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "message": "Site settings updated successfully",
-      "updatedSettings": {
-        "siteName": "New Escrow App",
-        "siteLogo": "https://example.com/new-logo.png",
-        "siteDescription": "An updated secure escrow service platform.",
-        "siteUrl": "https://newexample.com",
-        "siteEmail": "new-support@example.com",
-        "sitePhone": "+9876543210",
-        "siteAddress": "456 Another Street, City, Country",
-        "socialMediaLinks": {
-          "facebook": "https://facebook.com/newexample",
-          "twitter": "https://twitter.com/newexample"
-        },
-        "siteColors": {
-          "primary": "#abcdef",
-          "secondary": "#fedcba",
-          "background": "#f0f0f0",
-          "text_color": "#333333"
-        },
-        "maintenanceMode": {
-          "enabled": true,
-          "message": "We are currently performing maintenance. Please check back soon."
-        }
-      }
+      "updatedSettings": { /* updated settings object */ }
     }
     ```
   - Error (400):
     ```json
-    {
-      "message": "Validation error: [specific validation error message]"
-    }
+    { "message": "Validation error: [specific validation error message]" }
     ```
   - Error (500):
     ```json
-    {
-      "message": "Error updating site settings",
-      "error": "Internal server error"
-    }
+    { "message": "Error updating site settings", "error": "Internal server error" }
     ```
 
 #### Enable Maintenance Mode
 
-- **Endpoint**: `PUT /api/site/maintenance`
-- **Description**: Enable or disable maintenance mode for the site.
+- **Endpoint**: `PUT /api/settings/maintenance`
+- **Description**: Enable or disable maintenance mode for the site. Requires admin authentication.
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
@@ -257,26 +229,19 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "message": "Maintenance mode updated successfully",
-      "updatedSettings": {
-        "maintenanceMode": {
-          "enabled": true,
-          "message": "The site is under maintenance. Please check back later."
-        }
+      "maintenanceMode": {
+        "enabled": true,
+        "message": "The site is under maintenance. Please check back later."
       }
     }
     ```
   - Error (404):
     ```json
-    {
-      "message": "Site settings not found"
-    }
+    { "message": "Site settings not found" }
     ```
   - Error (500):
     ```json
-    {
-      "message": "Error updating maintenance mode",
-      "error": "Internal server error"
-    }
+    { "message": "Error updating maintenance mode", "error": "Internal server error" }
     ```
 
 ---
@@ -1017,7 +982,7 @@ Ensure the following environment variables are set in your `.env` file:
 #### Get Admin Dashboard
 
 - **Endpoint**: `GET /api/admin/dashboard`
-- **Description**: Retrieve admin dashboard statistics. Requires admin authentication and appropriate admin role.
+- **Description**: Retrieve admin dashboard statistics. Requires admin authentication.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Response**:
@@ -1025,43 +990,18 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "message": "Dashboard details fetched successfully",
-      "dashboardDetails": {
-        "success": true,
-        "message": "Dashboard data fetched successfully",
-        "data": {
-          "totalUsers": 100,
-          "totalDisputes": 5,
-          "totalEscrows": 50,
-          "escrowStatus": {
-            "pending": 10,
-            "active": 20,
-            "completed": 15,
-            "disputed": 5
-          },
-          "totalTransactions": 200,
-          "wallet": {
-            "totalAvailable": 10000,
-            "totalLocked": 2000,
-            "total": 12000
-          }
-        }
-      }
+      "dashboardDetails": { /* dashboard data */ }
     }
     ```
   - Error (500):
     ```json
-    {
-      "message": "Error fetching dashboard details",
-      "error": "Error message"
-    }
+    { "message": "Error fetching dashboard details", "error": "Error message" }
     ```
-
----
 
 #### Get All Escrows (Admin)
 
 - **Endpoint**: `GET /api/admin/escrows`
-- **Description**: Retrieve all escrows with optional filters. Requires admin authentication and appropriate admin role.
+- **Description**: Retrieve all escrows with optional filters. Requires admin authentication.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Query Parameters**:
@@ -1074,40 +1014,18 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": true,
       "message": "Escrow details fetched successfully",
-      "escrowDetails": {
-        "data": {
-          "escrows": [
-            {
-              "_id": "escrowId",
-              "creator": { /* user object */ },
-              "counterparty": { /* user object */ },
-              "amount": 5000,
-              "status": "active"
-              // ...other escrow fields
-            }
-            // ...more escrows
-          ],
-          "totalPages": 5,
-          "currentPage": 1
-        }
-      }
+      "escrowDetails": { /* escrows and pagination */ }
     }
     ```
   - Error (500):
     ```json
-    {
-      "success": false,
-      "message": "Error fetching escrow details",
-      "error": "Error message"
-    }
+    { "success": false, "message": "Error fetching escrow details", "error": "Error message" }
     ```
-
----
 
 #### Get All Transactions (Admin)
 
 - **Endpoint**: `GET /api/admin/transactions`
-- **Description**: Retrieve all transactions with pagination. Requires admin authentication and appropriate admin role.
+- **Description**: Retrieve all transactions with pagination. Requires admin authentication.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Query Parameters**:
@@ -1119,26 +1037,18 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": true,
       "message": "Transaction details fetched successfully",
-      "transactionDetails": {
-        // ...transaction data
-      }
+      "transactionDetails": { /* transaction data */ }
     }
     ```
   - Error (500):
     ```json
-    {
-      "success": false,
-      "message": "Error fetching transaction details",
-      "error": "Error message"
-    }
+    { "success": false, "message": "Error fetching transaction details", "error": "Error message" }
     ```
-
----
 
 #### Get All Users (Admin)
 
 - **Endpoint**: `GET /api/admin/users`
-- **Description**: Retrieve all users with pagination. Requires admin authentication and appropriate admin role.
+- **Description**: Retrieve all users with pagination. Requires admin authentication.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Query Parameters**:
@@ -1150,26 +1060,18 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": true,
       "message": "User details fetched successfully",
-      "userDetails": {
-        // ...user data
-      }
+      "userDetails": { /* user data */ }
     }
     ```
   - Error (500):
     ```json
-    {
-      "success": false,
-      "message": "Error fetching user details",
-      "error": "Error message"
-    }
+    { "success": false, "message": "Error fetching user details", "error": "Error message" }
     ```
-
----
 
 #### Get Single User (Admin)
 
 - **Endpoint**: `GET /api/admin/user/:username`
-- **Description**: Retrieve details for a single user by username. Requires admin authentication and appropriate admin role.
+- **Description**: Retrieve details for a single user by username. Requires admin authentication.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Response**:
@@ -1178,25 +1080,46 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": true,
       "message": "User details fetched successfully",
-      "userDetails": {
-        // ...user data
-      }
+      "userDetails": { /* user data */ }
     }
     ```
   - Error (400):
     ```json
-    {
-      "success": false,
-      "message": "Validation error"
-    }
+    { "success": false, "message": "Validation error" }
     ```
   - Error (500):
     ```json
+    { "success": false, "message": "Error fetching user details", "error": "Error message" }
+    ```
+
+#### Perform User Action (Admin)
+
+- **Endpoint**: `POST /api/admin/user-action`
+- **Description**: Perform an action (`activate`, `suspend`, `delete`) on a user. Requires admin authentication.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "username": "johndoe",
+    "action": "activate"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
     {
-      "success": false,
-      "message": "Error fetching user details",
-      "error": "Error message"
+      "success": true,
+      "message": "User activated successfully"
     }
+    ```
+  - Error (400):
+    ```json
+    { "success": false, "message": "Validation error" }
+    ```
+  - Error (500):
+    ```json
+    { "success": false, "message": "Error performing user action", "error": "Error message" }
     ```
 
 ---

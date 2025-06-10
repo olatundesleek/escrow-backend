@@ -6,6 +6,7 @@ const {
   getAllTransactions,
   getAllUsers,
   getUser,
+  performUserAction,
 } = require("../services/adminServices");
 
 // Joi Schemas
@@ -15,6 +16,11 @@ const escrowQuerySchema = Joi.object({
     .optional(),
   page: Joi.number().integer().min(1).optional(),
   limit: Joi.number().integer().min(1).max(100).optional(),
+});
+
+const userActionSchema = Joi.object({
+  username: Joi.string().alphanum().min(3).max(30).required(),
+  action: Joi.string().valid("activate", "suspend", "delete").required(),
 });
 
 const paginationSchema = Joi.object({
@@ -162,10 +168,40 @@ const getUserData = async (req, res) => {
   }
 };
 
+const userAction = async (req, res) => {
+  const { error, value } = userActionSchema.validate(req.body);
+  if (error) {
+    return res
+      .status(400)
+      .json({ success: false, message: error.details[0].message });
+  }
+
+  try {
+    const subRole = req.subRole;
+    const action = await performUserAction(
+      value.username,
+      value.action,
+      subRole
+    );
+    // Implement user action logic here
+    res.status(200).json({
+      success: true,
+      message: action,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error performing user action",
+      error,
+    });
+  }
+};
+
 module.exports = {
   getDashboardData,
   getEscrowData,
   getTransactionData,
   getAllUsersData,
   getUserData,
+  userAction,
 };

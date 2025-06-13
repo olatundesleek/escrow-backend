@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const feeSchema = new mongoose.Schema({
-  amount: {
+  fee: {
     type: Number,
     required: true,
     default: 2.5,

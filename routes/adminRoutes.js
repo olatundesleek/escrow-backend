@@ -7,6 +7,7 @@ const {
   getAllUsersData,
   getUserData,
   userAction,
+  paymentSettings,
 } = require("../controllers/adminController");
 const router = express.Router();
 
@@ -17,5 +18,11 @@ router.get("/admin/users", authMiddleware, isAdmin, getAllUsersData);
 router.get("/admin/user/:username", authMiddleware, isAdmin, getUserData);
 router.get("/admin/user/:username", authMiddleware, isAdmin, getUserData);
 router.post("/admin/user-action", authMiddleware, isAdmin, userAction);
+router.put(
+  "/admin/escrowpaymentsetting",
+  authMiddleware,
+  isAdmin,
+  paymentSettings
+);
 
 module.exports = router;

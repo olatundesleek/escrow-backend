@@ -47,6 +47,7 @@ async function createNewEscrow(
       creator: creatorId,
       creatorRole,
       counterpartyEmail: counterEmail,
+      creatorEmail,
       amount,
       category,
       escrowfeepayment,
@@ -201,11 +202,6 @@ async function getEscrowById(escrowId, userId) {
     if (userId !== escrow.creator.toString()) {
       const user = await User.findById(userId);
       if (!user) throw new Error("User not found");
-      console.log(
-        "this is the logged in user email" + user.email.toLowerCase(),
-        "this is the logged in escrow counterparty email" +
-          escrow.counterpartyEmail.toLowerCase()
-      );
 
       if (
         user.email.toLowerCase() !== escrow.counterpartyEmail.toLowerCase() &&
@@ -216,21 +212,54 @@ async function getEscrowById(escrowId, userId) {
         );
       }
     }
-    return escrow;
+    const escrowObj = escrow.toObject();
+
+    // Remove the counterpartyEmail before returning
+    delete escrowObj.counterpartyEmail;
+    delete escrowObj.creatorEmail;
+
+    return escrowObj;
   } catch (error) {
     console.error("Error in getEscrowById:", error.message);
     throw new Error("Failed to retrieve escrow: " + error.message);
   }
 }
 
-async function getAllEscrows(userId) {
+async function getAllEscrows(userId, page = 1, limit = 10, status = "all") {
   try {
-    const userEscrows = await User.findById(userId).populate("escrows");
+    const userEscrows = await User.findById(userId)
+      .populate("escrows") // Populate the 'escrows' field
+      .exec(); // Ensure the query is executed
+
     if (!userEscrows) throw new Error("User not found");
 
-    return userEscrows.escrows;
+    // Filter escrows by status (if provided)
+    let escrows = userEscrows.escrows;
+    if (status !== "all") {
+      escrows = escrows.filter((escrow) => escrow.status === status);
+    }
+
+    // Pagination on escrows
+    const totalEscrows = escrows.length;
+    const paginatedEscrows = escrows.slice((page - 1) * limit, page * limit);
+
+    // Convert each escrow to plain object and remove 'counterpartyEmail'
+    const escrowObj = paginatedEscrows.map((escrow) => {
+      const escrowPlainObj = escrow.toObject(); // Convert each escrow to plain object
+      delete escrowPlainObj.counterpartyEmail; // Remove the counterpartyEmail
+      delete escrowPlainObj.creatorEmail; // Remove the creatorEmail
+      return escrowPlainObj; // Return the modified escrow
+    });
+
+    // Return paginated and filtered escrows
+    return {
+      total: totalEscrows,
+      page,
+      limit,
+      data: escrowObj,
+    };
   } catch (error) {
-    console.error("Error in getEscrowAllEscrows:", error.message);
+    console.error("Error in getAllEscrows:", error.message);
     throw new Error("Failed to retrieve all escrows: " + error.message);
   }
 }

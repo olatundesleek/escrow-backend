@@ -10,6 +10,7 @@ const escrowSchema = new mongoose.Schema(
     creatorRole: { type: String, enum: ["buyer", "seller"], required: true },
     counterparty: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     counterpartyEmail: { type: String, required: true },
+    creatorEmail: { type: String, required: true },
     buyer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     seller: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     amount: { type: Number, required: true },

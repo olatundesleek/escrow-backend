@@ -7,6 +7,7 @@ const {
   getAllUsers,
   getUser,
   performUserAction,
+  paymentSettingService,
 } = require("../services/adminServices");
 
 // Joi Schemas
@@ -35,6 +36,12 @@ const userParamSchema = Joi.object({
 const dashboardRoleSchema = Joi.string()
   .valid("auditor", "super_admin", "customer_care")
   .required();
+
+const paymentSettingSchema = Joi.object({
+  fee: Joi.number(),
+  merchant: Joi.string().valid("Paystack", "Flutterwave", "Bank Transfer"),
+  currency: Joi.string().valid("USD", "EUR", "NGN"),
+}).or("fee", "merchant", "currency"); // at least one of these must be present
 
 // Controller: Dashboard
 const getDashboardData = async (req, res) => {
@@ -197,6 +204,53 @@ const userAction = async (req, res) => {
   }
 };
 
+// Update payment settings in the database
+
+const paymentSettings = async (req, res) => {
+  const { error, value } = paymentSettingSchema.validate(req.body);
+  if (error) {
+    return res
+      .status(400)
+      .json({ success: false, message: error.details[0].message });
+  }
+
+  try {
+    if (!req.subRole || req.subRole !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only super admins can update payment settings",
+      });
+    }
+    const { fee, merchant, currency } = value;
+    console.log("Payment Settings:", fee, merchant, currency);
+    // Validate the input
+    if (fee == null || merchant == null || currency == null) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    // Update payment settings in the database
+    const updatedSettings = await paymentSettingService(
+      fee,
+      merchant,
+      currency
+    );
+    res.status(200).json({
+      success: true,
+      message: "Payment settings updated successfully",
+      data: updatedSettings,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating payment settings",
+      error,
+    });
+  }
+};
+
 module.exports = {
   getDashboardData,
   getEscrowData,
@@ -204,4 +258,5 @@ module.exports = {
   getAllUsersData,
   getUserData,
   userAction,
+  paymentSettings,
 };

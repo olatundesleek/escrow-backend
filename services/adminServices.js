@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Transaction = require("../models/Transaction");
 const Escrow = require("../models/Escrow");
 const Dispute = require("../models/Dispute");
+const PaymentSetting = require("../models/PaymentSetting");
 
 async function getAdminDashboardData(subRole) {
   try {
@@ -277,6 +278,20 @@ const performUserAction = async (username, action, subRole) => {
   }
 };
 
+const paymentSettingService = async (fee, merchant, currency) => {
+  try {
+    const updatedSettings = await PaymentSetting.findOneAndUpdate(
+      {},
+      { fee, merchant, currency },
+      { new: true, upsert: true }
+    );
+    return updatedSettings;
+  } catch (error) {
+    console.error("Error updating payment settings:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   getAdminDashboardData,
   getAllEscrows,
@@ -284,4 +299,5 @@ module.exports = {
   getAllUsers,
   getUser,
   performUserAction,
+  paymentSettingService,
 };

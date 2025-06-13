@@ -77,7 +77,11 @@ const getEscrows = async (req, res) => {
   const userId = req.userId;
 
   try {
-    const escrows = await getAllEscrows(userId);
+    const escrows = await getAllEscrows(userId, {
+      page: req.query.page || 1,
+      limit: req.query.limit || 10,
+      status: req.query.status || "all",
+    });
     if (!escrows || escrows.length === 0) {
       return res.status(404).json({
         message: "No escrows found for this user",

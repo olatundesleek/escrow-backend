@@ -159,7 +159,10 @@ Ensure the following environment variables are set in your `.env` file:
     ```
   - Error (500):
     ```json
-    { "message": "Error fetching site settings", "error": "Internal server error" }
+    {
+      "message": "Error fetching site settings",
+      "error": "Internal server error"
+    }
     ```
 
 #### Update Site Settings
@@ -199,7 +202,9 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "message": "Site settings updated successfully",
-      "updatedSettings": { /* updated settings object */ }
+      "updatedSettings": {
+        /* updated settings object */
+      }
     }
     ```
   - Error (400):
@@ -208,7 +213,10 @@ Ensure the following environment variables are set in your `.env` file:
     ```
   - Error (500):
     ```json
-    { "message": "Error updating site settings", "error": "Internal server error" }
+    {
+      "message": "Error updating site settings",
+      "error": "Internal server error"
+    }
     ```
 
 #### Enable Maintenance Mode
@@ -241,7 +249,10 @@ Ensure the following environment variables are set in your `.env` file:
     ```
   - Error (500):
     ```json
-    { "message": "Error updating maintenance mode", "error": "Internal server error" }
+    {
+      "message": "Error updating maintenance mode",
+      "error": "Internal server error"
+    }
     ```
 
 ---
@@ -982,7 +993,7 @@ Ensure the following environment variables are set in your `.env` file:
 #### Get Admin Dashboard
 
 - **Endpoint**: `GET /api/admin/dashboard`
-- **Description**: Retrieve admin dashboard statistics. Requires admin authentication.
+- **Description**: Retrieve admin dashboard statistics. Requires admin authentication and appropriate admin role.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Response**:
@@ -990,13 +1001,21 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "message": "Dashboard details fetched successfully",
-      "dashboardDetails": { /* dashboard data */ }
+      "dashboardDetails": {
+        /* dashboard data */
+      }
     }
+    ```
+  - Error (400):
+    ```json
+    { "success": false, "message": "Validation error" }
     ```
   - Error (500):
     ```json
     { "message": "Error fetching dashboard details", "error": "Error message" }
     ```
+
+---
 
 #### Get All Escrows (Admin)
 
@@ -1014,13 +1033,54 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": true,
       "message": "Escrow details fetched successfully",
-      "escrowDetails": { /* escrows and pagination */ }
+      "escrowDetails": {
+        /* escrows and pagination */
+      }
     }
     ```
   - Error (500):
     ```json
-    { "success": false, "message": "Error fetching escrow details", "error": "Error message" }
+    {
+      "success": false,
+      "message": "Error fetching escrow details",
+      "error": "Error message"
+    }
     ```
+
+---
+
+#### Get Escrow Details (Admin)
+
+- **Endpoint**: `GET /api/admin/escrow/:id`
+- **Description**: Retrieve details for a specific escrow by ID. Requires admin authentication.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Escrow details retrieved successfully",
+      "escrow": {
+        /* escrow data */
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error retrieving escrow details",
+      "error": "Error message"
+    }
+    ```
+
+---
 
 #### Get All Transactions (Admin)
 
@@ -1037,13 +1097,21 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": true,
       "message": "Transaction details fetched successfully",
-      "transactionDetails": { /* transaction data */ }
+      "transactionDetails": {
+        /* transaction data */
+      }
     }
     ```
   - Error (500):
     ```json
-    { "success": false, "message": "Error fetching transaction details", "error": "Error message" }
+    {
+      "success": false,
+      "message": "Error fetching transaction details",
+      "error": "Error message"
+    }
     ```
+
+---
 
 #### Get All Users (Admin)
 
@@ -1060,13 +1128,21 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": true,
       "message": "User details fetched successfully",
-      "userDetails": { /* user data */ }
+      "userDetails": {
+        /* user data */
+      }
     }
     ```
   - Error (500):
     ```json
-    { "success": false, "message": "Error fetching user details", "error": "Error message" }
+    {
+      "success": false,
+      "message": "Error fetching user details",
+      "error": "Error message"
+    }
     ```
+
+---
 
 #### Get Single User (Admin)
 
@@ -1080,7 +1156,9 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": true,
       "message": "User details fetched successfully",
-      "userDetails": { /* user data */ }
+      "userDetails": {
+        /* user data */
+      }
     }
     ```
   - Error (400):
@@ -1089,8 +1167,14 @@ Ensure the following environment variables are set in your `.env` file:
     ```
   - Error (500):
     ```json
-    { "success": false, "message": "Error fetching user details", "error": "Error message" }
+    {
+      "success": false,
+      "message": "Error fetching user details",
+      "error": "Error message"
+    }
     ```
+
+---
 
 #### Perform User Action (Admin)
 
@@ -1119,7 +1203,58 @@ Ensure the following environment variables are set in your `.env` file:
     ```
   - Error (500):
     ```json
-    { "success": false, "message": "Error performing user action", "error": "Error message" }
+    {
+      "success": false,
+      "message": "Error performing user action",
+      "error": "Error message"
+    }
+    ```
+
+---
+
+#### Update Payment Settings (Admin)
+
+- **Endpoint**: `PUT /api/admin/escrowpaymentsetting`
+- **Description**: Update escrow payment settings (fee, merchant, currency). Requires super admin authentication.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "fee": 100,
+    "merchant": "Paystack",
+    "currency": "USD"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Payment settings updated successfully",
+      "data": {
+        /* updated payment settings */
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    { "success": false, "message": "Validation error" }
+    ```
+  - Error (403):
+    ```json
+    {
+      "success": false,
+      "message": "Only super admins can update payment settings"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error updating payment settings",
+      "error": "Error message"
+    }
     ```
 
 ---

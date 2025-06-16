@@ -4,6 +4,7 @@ const Transaction = require("../models/Transaction");
 const Escrow = require("../models/Escrow");
 const Dispute = require("../models/Dispute");
 const PaymentSetting = require("../models/PaymentSetting");
+const mongoose = require("mongoose");
 
 async function getAdminDashboardData(subRole) {
   try {
@@ -163,6 +164,20 @@ const getAllEscrows = async (params) => {
   }
 };
 
+const adminGetEscrowById = async (escrowId) => {
+  if (!mongoose.Types.ObjectId.isValid(escrowId)) {
+    throw new Error("Invalid escrow ID format");
+  }
+  try {
+    const escrow = await Escrow.findById(escrowId).populate("chat");
+    if (!escrow) throw new Error("Escrow not found");
+
+    return escrow;
+  } catch (error) {
+    throw new Error("Failed to retrieve escrow: " + error.message);
+  }
+};
+
 const getAllTransactions = async (params) => {
   try {
     const { page = 1, limit = 10 } = params;
@@ -295,6 +310,7 @@ const paymentSettingService = async (fee, merchant, currency) => {
 module.exports = {
   getAdminDashboardData,
   getAllEscrows,
+  adminGetEscrowById,
   getAllTransactions,
   getAllUsers,
   getUser,

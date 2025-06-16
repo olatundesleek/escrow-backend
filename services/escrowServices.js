@@ -225,7 +225,7 @@ async function getEscrowById(escrowId, userId) {
   }
 }
 
-async function getAllEscrows(userId, page = 1, limit = 10, status = "all") {
+async function getAllEscrows(userId, { page, limit, status }) {
   try {
     const userEscrows = await User.findById(userId)
       .populate("escrows") // Populate the 'escrows' field
@@ -235,15 +235,16 @@ async function getAllEscrows(userId, page = 1, limit = 10, status = "all") {
 
     // Filter escrows by status (if provided)
     let escrows = userEscrows.escrows;
+
     if (status !== "all") {
       escrows = escrows.filter((escrow) => escrow.status === status);
     }
-
+    console.log("this is my status,page,limit:", status, page, limit);
     // Pagination on escrows
     const totalEscrows = escrows.length;
     const paginatedEscrows = escrows.slice((page - 1) * limit, page * limit);
 
-    // Convert each escrow to plain object and remove 'counterpartyEmail'
+    //im Converting each escrow to plain object and remove 'counterpartyEmail and creator email for privacy'
     const escrowObj = paginatedEscrows.map((escrow) => {
       const escrowPlainObj = escrow.toObject(); // Convert each escrow to plain object
       delete escrowPlainObj.counterpartyEmail; // Remove the counterpartyEmail
@@ -252,6 +253,7 @@ async function getAllEscrows(userId, page = 1, limit = 10, status = "all") {
     });
 
     // Return paginated and filtered escrows
+
     return {
       total: totalEscrows,
       page,

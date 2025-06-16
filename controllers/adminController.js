@@ -3,6 +3,7 @@ const Joi = require("joi");
 const {
   getAdminDashboardData,
   getAllEscrows,
+  adminGetEscrowById,
   getAllTransactions,
   getAllUsers,
   getUser,
@@ -17,6 +18,10 @@ const escrowQuerySchema = Joi.object({
     .optional(),
   page: Joi.number().integer().min(1).optional(),
   limit: Joi.number().integer().min(1).max(100).optional(),
+});
+
+const getEscrowDetailsSchema = Joi.object({
+  id: Joi.string().required(), // Assuming ID is a string
 });
 
 const userActionSchema = Joi.object({
@@ -68,7 +73,7 @@ const getDashboardData = async (req, res) => {
 };
 
 // Controller: Escrow
-const getEscrowData = async (req, res) => {
+const getEscrows = async (req, res) => {
   try {
     const { error, value } = escrowQuerySchema.validate(req.query);
     if (error) {
@@ -90,6 +95,33 @@ const getEscrowData = async (req, res) => {
       success: false,
       message: "Error fetching escrow details",
       error,
+    });
+  }
+};
+
+const adminGetEscrowDetails = async (req, res) => {
+  const { error } = getEscrowDetailsSchema.validate(req.params);
+  if (error) {
+    return res.status(400).json({
+      message: "Validation error",
+      details: error.details.map((detail) => detail.message),
+    });
+  }
+
+  const escrowId = req.params.id;
+
+  try {
+    const escrow = await adminGetEscrowById(escrowId);
+
+    return res.status(200).json({
+      message: "Escrow details retrieved successfully",
+      escrow,
+    });
+  } catch (err) {
+    console.error("Get Escrow Details Error:", err);
+    return res.status(500).json({
+      message: "Error retrieving escrow details",
+      error: err.message || "Internal server error",
     });
   }
 };
@@ -253,10 +285,11 @@ const paymentSettings = async (req, res) => {
 
 module.exports = {
   getDashboardData,
-  getEscrowData,
+  getEscrows,
   getTransactionData,
   getAllUsersData,
   getUserData,
   userAction,
   paymentSettings,
+  adminGetEscrowDetails,
 };

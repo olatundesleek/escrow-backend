@@ -25,6 +25,18 @@ const loginSchema = Joi.object({
   rememberme: Joi.boolean().optional(),
 });
 
+// schema for changing password
+const changePasswordSchema = Joi.object({
+  currentPassword: Joi.string().required(),
+  newPassword: Joi.string().min(6).required(),
+  confirmNewPassword: Joi.string()
+    .valid(Joi.ref("newPassword"))
+    .required()
+    .messages({
+      "any.only": "New password and confirmation do not match",
+    }),
+});
+
 const emailVerificationSchema = Joi.object({
   email: Joi.string().required(),
 });
@@ -419,6 +431,51 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  const { error } = changePasswordSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation error",
+      details: error.details.map((d) => d.message),
+    });
+  }
+
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to change password",
+    });
+  }
+};
+
 // Logout
 const logout = (req, res) => {
   const isProduction = process.env.NODE_ENV === "production";
@@ -444,4 +501,5 @@ module.exports = {
   resetPassword,
   forgotPassword,
   confirmResetToken,
+  changePassword,
 };

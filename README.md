@@ -525,6 +525,60 @@ Ensure the following environment variables are set in your `.env` file:
 
 ---
 
+#### Change Password
+
+- **Endpoint**: `POST /api/auth/change-password`
+- **Description**: Change the password for the currently authenticated user. Requires authentication.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "currentPassword": "oldpassword123",
+    "newPassword": "newpassword456",
+    "confirmNewPassword": "newpassword456"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Password changed successfully"
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (401):
+    ```json
+    {
+      "success": false,
+      "message": "Current password is incorrect"
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "User not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to change password"
+    }
+    ```
+
+---
+
 ### Escrow
 
 #### Create a New Escrow

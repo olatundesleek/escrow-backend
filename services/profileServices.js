@@ -38,7 +38,20 @@ async function getUserById(userId) {
     if (!user) {
       return { success: false, message: "User not found" };
     }
-    return { success: true, data: user };
+    const data = {
+      _id: user._id,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      subRole: user.subRole,
+      isVerified: user.isVerified,
+      address: user.address,
+      kyc: user.kyc,
+    };
+
+    return { success: true, data };
   } catch (error) {
     return { success: false, message: "Failed to retrieve user" };
   }

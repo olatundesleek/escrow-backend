@@ -8,16 +8,21 @@ const walletSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    balance: {
+    totalBalance: {
       type: Number,
       default: 0,
       required: true,
     },
-    locked: {
+    lockedBalance: {
       type: Number,
       default: 0, // Funds reserved for pending or escrowed actions
       required: true,
     },
+    // availableBalance: {
+    //   type: Number,
+    //   default: 0, // Funds available for withdrawal or spending
+    //   required: true,
+    // },
     currency: {
       type: String,
       default: "NGN",
@@ -32,44 +37,53 @@ const walletSchema = new mongoose.Schema(
 // === Utility Methods ===
 
 // Deposit funds (add to balance)
+// Deposit funds (add to total balance)
 walletSchema.methods.deposit = function (amount) {
   if (amount <= 0) throw new Error("Invalid deposit amount");
-  this.balance += amount;
+  this.totalBalance += amount;
   return this.save();
 };
 
-// Withdraw funds (subtract from balance if sufficient)
+// Withdraw funds (subtract from total balance if available)
 walletSchema.methods.withdraw = function (amount) {
   if (amount <= 0) throw new Error("Invalid withdrawal amount");
-  if (this.balance < amount) throw new Error("Insufficient balance");
-  this.balance -= amount;
+  const available = this.totalBalance - this.lockedBalance;
+  if (available < amount) throw new Error("Insufficient available balance");
+  this.totalBalance -= amount;
   return this.save();
 };
 
-// Lock funds (move from balance to locked)
+// Lock funds (reserve some funds)
 walletSchema.methods.lockFunds = function (amount) {
   if (amount <= 0) throw new Error("Invalid lock amount");
-  if (this.balance < amount) throw new Error("Insufficient balance to lock");
-  this.balance -= amount;
-  this.locked += amount;
+  const available = this.totalBalance - this.lockedBalance;
+  if (available < amount)
+    throw new Error("Insufficient available balance to lock");
+  this.lockedBalance += amount;
   return this.save();
 };
 
-// Unlock funds (move from locked back to balance)
+// Unlock funds
 walletSchema.methods.unlockFunds = function (amount) {
   if (amount <= 0) throw new Error("Invalid unlock amount");
-  if (this.locked < amount) throw new Error("Insufficient locked funds");
-  this.locked -= amount;
-  this.balance += amount;
+  if (this.lockedBalance < amount) throw new Error("Insufficient locked funds");
+  this.lockedBalance -= amount;
   return this.save();
 };
 
-// Deduct locked funds (for completing escrow)
+// Deduct locked funds (e.g., complete escrow)
 walletSchema.methods.deductLocked = function (amount) {
   if (amount <= 0) throw new Error("Invalid deduction amount");
-  if (this.locked < amount) throw new Error("Insufficient locked funds");
-  this.locked -= amount;
+  if (this.lockedBalance < amount) throw new Error("Insufficient locked funds");
+  this.lockedBalance -= amount;
+  this.totalBalance -= amount;
   return this.save();
 };
+
+// Get available balance (non-persistent)
+
+walletSchema.virtual("availableBalance").get(function () {
+  return this.totalBalance - this.lockedBalance;
+});
 
 module.exports = mongoose.model("Wallet", walletSchema);

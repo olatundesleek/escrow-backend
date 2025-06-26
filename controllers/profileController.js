@@ -29,11 +29,19 @@ async function getProfileDetails(req, res) {
   try {
     const userId = req.userId;
     const user = await getUserById(userId);
-    res
-      .status(200)
-      .json({ message: "Profile details fetched successfully", user });
+    res.status(200).json({
+      success: true,
+      message: "Profile details fetched successfully",
+      user,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching profile details", error });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Error fetching profile details",
+        error,
+      });
   }
 }
 
@@ -41,6 +49,7 @@ async function getProfileDetails(req, res) {
 async function isAuthenticated(req, res) {
   try {
     res.status(200).json({
+      success: true,
       message: "User is authenticated",
       authenticated: true,
     });

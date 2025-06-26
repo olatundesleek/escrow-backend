@@ -1,3 +1,5 @@
+// const initiatePaystackPayment = require("./paystackService");
+
 async function initiatePayment(amount, currency, userId) {
   try {
     const session = await mongoose.startSession();

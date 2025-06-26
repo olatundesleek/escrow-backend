@@ -20,7 +20,14 @@ const escrowSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "active", "completed", "disputed"],
+      enum: [
+        "pending",
+        "active",
+        "completed",
+        "disputed",
+        "cancelled",
+        "rejected",
+      ],
       default: "pending",
     },
     paymentStatus: {

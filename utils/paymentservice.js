@@ -1,4 +1,6 @@
 const PaymentSetting = require("../models/PaymentSetting");
+const initiatePaystackPayment = require("./paystackService");
+const initiateFlutterwavePayment = require("./flutterwaveService");
 const Transaction = require("../models/Transaction");
 const Wallet = require("../models/Wallet");
 const mongoose = require("mongoose");
@@ -39,28 +41,49 @@ async function initiatePayment(escrowId, currency, userId) {
     } else {
       throw new Error("Invalid escrow fee payment ");
     }
-
-    const escrowFee = setting.amount;
-    const feeCurrency = setting.currency;
-    const merchant = setting.merchant;
+    const paymentData = {
+      userEmail: escrow.buyerEmail,
+      userId: userId,
+      escrowId: escrow._id,
+      escrowFee: fee * 100, // Convert to kobo for Nigerian Naira
+      amount: escrow.amount * 100, // Convert to kobo for Nigerian Naira
+      feeCurrency: setting.currency,
+      merchant: setting.merchant,
+    };
 
     const transaction = new Transaction({
-      escrowFee,
-      feeCurrency,
-      merchant,
+      user: userId,
+      escrow: escrow._id,
+      wallet: wallet._id,
+      type: "escrow_payment",
+      from: {
+        user: escrow.buyerEmail,
+      },
+      to: {
+        user: escrow.sellerEmail,
+      },
+      reference: `escrow_${escrow._id}_${Date.now()}`,
+      amount: escrow.amount + fee,
+      gateway: setting.merchant,
+      metadata: {
+        escrowId: escrow._id,
+        userEmail: escrow.buyerEmail,
+        userId: userId,
+        fee: fee,
+      },
       status: "initiated",
     });
 
     await transaction.save();
 
-    if (merchant === "paystack") {
-      const payment = await initiatePaystackPayment(amount, currency);
+    if (setting.merchant === "paystack") {
+      const payment = await initiatePaystackPayment(paymentData);
       transaction.status = "pending";
       transaction.merchant = "paystack";
       await transaction.save();
       return payment;
-    } else if (merchant === "flutterwave") {
-      const payment = await initiateFlutterwavePayment(amount, currency);
+    } else if (setting.merchant === "flutterwave") {
+      const payment = await initiateFlutterwavePayment(paymentData);
       return payment;
     } else {
       throw new Error("Unsupported payment gateway");

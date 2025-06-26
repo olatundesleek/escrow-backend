@@ -233,10 +233,9 @@ const getAllUsers = async (params) => {
 
 const getUser = async (username) => {
   try {
-    const user = await User.findOne({ username }, "-password")
-      .populate("wallet")
-      .populate("escrows")
-      .populate("transactions");
+    const user = await User.findOne({ username }, "-password").populate(
+      "wallet"
+    );
     if (!user) {
       throw new Error("User not found");
     }
@@ -246,6 +245,7 @@ const getUser = async (username) => {
     throw error;
   }
 };
+
 const performUserAction = async (username, action, subRole) => {
   try {
     const user = await User.findOne({ username });
@@ -271,7 +271,7 @@ const performUserAction = async (username, action, subRole) => {
         if (subRole !== "super_admin") {
           throw new Error("only super admins can delete users");
         }
-        await User.deleteOne({ _id: user._id });
+        await User.updateOne({ _id: user._id }, { status: "deleted" });
         return { success: true, message: "User deleted successfully" };
       default:
         throw new Error("Invalid action");

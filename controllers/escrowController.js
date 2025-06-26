@@ -3,6 +3,7 @@ const Escrow = require("../models/Escrow");
 const {
   createNewEscrow,
   acceptNewEscrow,
+  rejectNewEscrow,
   getEscrowById,
   getAllEscrows,
 } = require("../services/escrowServices.js");
@@ -21,6 +22,16 @@ const createEscrowSchema = Joi.object({
 const updateEscrowSchema = Joi.object({
   amount: Joi.number().positive().optional(),
   status: Joi.string().valid("pending", "completed", "disputed").optional(),
+});
+
+// Schema for accepting an escrow transaction
+const acceptEscrowSchema = Joi.object({
+  escrowId: Joi.string().required(), // Assuming ID is a string, adjust if using ObjectId
+});
+
+// Schema for rejecting an escrow transaction
+const rejectEscrowSchema = Joi.object({
+  escrowId: Joi.string().required(), // Assuming ID is a string, adjust if using ObjectId
 });
 
 const getEscrowDetailsSchema = Joi.object({
@@ -105,6 +116,14 @@ const getEscrows = async (req, res) => {
 
 // Accept an escrow transaction
 const acceptEscrow = async (req, res) => {
+  const { error } = acceptEscrowSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({
+      message: "Validation error",
+      details: error.details.map((detail) => detail.message),
+    });
+  }
+
   const { escrowId } = req.body;
   if (!escrowId) {
     return res.status(400).json({
@@ -115,7 +134,7 @@ const acceptEscrow = async (req, res) => {
   try {
     const userId = req.userId;
     const escrow = await acceptNewEscrow(userId, escrowId);
-    io.emit("escrowAccepted", {
+    io.emit("dataupdated", {
       message: "Escrow accepted",
       escrowId: escrow._id,
       userId: userId,
@@ -129,6 +148,46 @@ const acceptEscrow = async (req, res) => {
     console.error("Accept Escrow Error:", err);
     return res.status(500).json({
       message: "Error accepting escrow",
+      error: err.message || "Internal server error",
+    });
+  }
+};
+
+// Reject an escrow transaction
+const rejectEscrow = async (req, res) => {
+  const { error } = rejectEscrowSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({
+      message: "Validation error",
+      details: error.details.map((detail) => detail.message),
+    });
+  }
+  const { escrowId } = req.body;
+  if (!escrowId) {
+    return res.status(400).json({
+      success: false,
+      message: "escrowId is required to reject an escrow",
+    });
+  }
+  try {
+    const userId = req.userId;
+    const escrow = await rejectNewEscrow(userId, escrowId);
+    io.emit("dataupdated", {
+      message: "Escrow rejected",
+      escrowId: escrow._id,
+      userId: userId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Escrow Rejected Successfully",
+      escrow,
+    });
+  } catch (err) {
+    console.error("Reject Escrow Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Error rejecting escrow",
       error: err.message || "Internal server error",
     });
   }
@@ -206,4 +265,5 @@ module.exports = {
   updateEscrow,
   getEscrowDetails,
   acceptEscrow,
+  rejectEscrow,
 };

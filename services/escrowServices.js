@@ -188,6 +188,37 @@ async function acceptNewEscrow(userId, escrowId) {
   }
 }
 
+const rejectNewEscrow = async (userId, escrowId) => {
+  if (!mongoose.Types.ObjectId.isValid(escrowId)) {
+    throw new Error("Invalid escrow ID format");
+  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const escrow = await Escrow.findById(escrowId).session(session);
+    if (!escrow) throw new Error("Escrow not found");
+    if (escrow.status !== "pending") {
+      throw new Error("Escrow is not in a pending state");
+    }
+    const user = await User.findById(userId).session(session);
+    if (!user) throw new Error("User not found");
+    if (user.email.toLowerCase() !== escrow.counterpartyEmail.toLowerCase()) {
+      throw new Error(
+        "Unauthorized: Your email does not match the counterparty email"
+      );
+    }
+    escrow.status = "rejected";
+    escrow.chatActive = false;
+    escrow.chat = null; // Remove chat reference
+    await escrow.save({ session });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error in rejectNewEscrow:", error.message);
+    throw new Error("Failed to reject escrow: " + error.message);
+  }
+};
+
 async function getEscrowById(escrowId, userId) {
   if (!mongoose.Types.ObjectId.isValid(escrowId)) {
     throw new Error("Invalid escrow ID format");
@@ -269,6 +300,7 @@ async function getAllEscrows(userId, { page, limit, status }) {
 module.exports = {
   createNewEscrow,
   acceptNewEscrow,
+  rejectNewEscrow,
   getEscrowById,
   getAllEscrows,
 };

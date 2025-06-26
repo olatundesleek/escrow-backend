@@ -594,7 +594,7 @@ Ensure the following environment variables are set in your `.env` file:
     "counterpartyEmail": "seller@example.com",
     "amount": 5000,
     "category": "services",
-    "escrowfeepayment": "creator",
+    "escrowfeepayment": "buyer",
     "description": "Payment for services",
     "terms": ["Deliver project files", "Provide support for 30 days"]
   }
@@ -604,17 +604,7 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "message": "Escrow created successfully",
-      "escrow": {
-        "_id": "12345",
-        "creatorRole": "buyer",
-        "counterpartyEmail": "seller@example.com",
-        "amount": 5000,
-        "category": "services",
-        "escrowfeepayment": "creator",
-        "description": "Payment for services",
-        "terms": ["Deliver project files", "Provide support for 30 days"],
-        "status": "pending"
-      }
+      "escrow": { /* escrow object */ }
     }
     ```
   - Error (400):
@@ -627,7 +617,8 @@ Ensure the following environment variables are set in your `.env` file:
   - Error (500):
     ```json
     {
-      "message": "Failed to create escrow: [error message]"
+      "message": "Error creating escrow",
+      "error": "Internal server error"
     }
     ```
 
@@ -639,70 +630,31 @@ Ensure the following environment variables are set in your `.env` file:
 - **Description**: Retrieve all escrows associated with the authenticated user.
 - **Headers**:  
   `Authorization: Bearer <token>`
+- **Query Parameters**:
+  - `page` (optional): Page number (default: 1)
+  - `limit` (optional): Results per page (default: 10)
+  - `status` (optional): Filter by status (e.g., "pending", "active", "completed", "disputed", "all")
 - **Response**:
   - Success (200):
     ```json
     {
-      "escrows": [
-        {
-          "_id": "12345",
-          "creatorRole": "buyer",
-          "amount": 5000,
-          "status": "pending"
-        }
-        // ...more escrows
-      ]
+      "success": true,
+      "message": "Escrows retrieved successfully",
+      "escrows": [ /* array of escrow objects */ ]
     }
     ```
   - Error (404):
     ```json
     {
-      "message": "User not found"
+      "message": "No escrows found for this user"
     }
     ```
   - Error (500):
     ```json
     {
-      "message": "Failed to retrieve all escrows: [error message]"
-    }
-    ```
-
----
-
-#### Accept an Escrow
-
-- **Endpoint**: `POST /api/acceptescrow`
-- **Description**: Accept an escrow invitation as the counterparty.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Request Body**:
-  ```json
-  {
-    "escrowId": "12345"
-  }
-  ```
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "message": "Escrow accepted successfully",
-      "escrow": {
-        "_id": "12345",
-        "status": "active"
-        // ...other escrow fields
-      }
-    }
-    ```
-  - Error (400):
-    ```json
-    {
-      "message": "Validation error or Unauthorized: Your email does not match the counterparty email"
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "message": "Failed to accept escrow: [error message]"
+      "success": false,
+      "message": "Error retrieving escrows",
+      "error": "Internal server error"
     }
     ```
 
@@ -718,18 +670,15 @@ Ensure the following environment variables are set in your `.env` file:
   - Success (200):
     ```json
     {
-      "escrow": {
-        "_id": "12345",
-        "creatorRole": "buyer",
-        "counterpartyEmail": "seller@example.com",
-        "amount": 5000,
-        "category": "services",
-        "escrowfeepayment": "creator",
-        "description": "Payment for services",
-        "terms": ["Deliver project files", "Provide support for 30 days"],
-        "status": "active"
-        // ...other escrow fields
-      }
+      "message": "Escrow details retrieved successfully",
+      "escrow": { /* escrow object */ }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
     }
     ```
   - Error (404):
@@ -738,16 +687,11 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Escrow not found"
     }
     ```
-  - Error (403):
-    ```json
-    {
-      "message": "Unauthorized: You do not have permission to access this escrow"
-    }
-    ```
   - Error (500):
     ```json
     {
-      "message": "Failed to retrieve escrow: [error message]"
+      "message": "Error retrieving escrow details",
+      "error": "Internal server error"
     }
     ```
 
@@ -771,12 +715,14 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "message": "Escrow updated successfully",
-      "escrow": {
-        "_id": "12345",
-        "amount": 6000,
-        "status": "completed"
-        // ...other escrow fields
-      }
+      "escrow": { /* updated escrow object */ }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
     }
     ```
   - Error (404):
@@ -788,7 +734,84 @@ Ensure the following environment variables are set in your `.env` file:
   - Error (500):
     ```json
     {
-      "message": "Failed to update escrow: [error message]"
+      "message": "Error updating escrow",
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
+#### Accept an Escrow
+
+- **Endpoint**: `POST /api/acceptescrow`
+- **Description**: Accept an escrow invitation as the counterparty.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "escrowId": "12345"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Escrow accepted successfully",
+      "escrow": { /* escrow object */ }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error accepting escrow",
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
+#### Reject an Escrow
+
+- **Endpoint**: `POST /api/rejectescrow`
+- **Description**: Reject an escrow invitation as the counterparty.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "escrowId": "12345"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Escrow Rejected Successfully",
+      "escrow": { /* escrow object */ }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error rejecting escrow",
+      "error": "Internal server error"
     }
     ```
 

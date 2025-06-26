@@ -259,8 +259,9 @@ async function getEscrowById(escrowId, userId) {
 async function getAllEscrows(userId, { page, limit, status }) {
   try {
     const userEscrows = await User.findById(userId)
-      .populate("escrows") // Populate the 'escrows' field
-      .exec(); // Ensure the query is executed
+      .populate("escrows")
+      .sort({ createdAt: -1 })
+      .exec();
 
     if (!userEscrows) throw new Error("User not found");
 

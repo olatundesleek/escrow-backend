@@ -15,7 +15,18 @@ const transactionSchema = new mongoose.Schema(
     wallet: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Wallet",
-      required: true,
+    },
+    from: {
+      user: {
+        type: String,
+        required: true,
+      },
+    },
+    to: {
+      user: {
+        type: String,
+        required: true,
+      },
     },
     type: {
       type: String,
@@ -42,6 +53,16 @@ const transactionSchema = new mongoose.Schema(
       type: String,
       enum: ["initiated", "success", "failed", "pending"],
       default: "pending",
+      required: true,
+    },
+    role: {
+      type: String,
+      enum: ["buyer", "seller"],
+      required: true,
+    },
+    direction: {
+      type: String,
+      enum: ["credit", "debit"],
       required: true,
     },
     gateway: {

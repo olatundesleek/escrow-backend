@@ -5,7 +5,7 @@ const axios = require("axios");
  * @param {Object} paymentData - { amount, email, reference, [callback_url] }
  * @returns {Promise<Object>} - Paystack response
  */
-async function initializePayment(paymentData) {
+async function initiatePaystackPayment(paymentData) {
   const url = "https://api.paystack.co/transaction/initialize";
   try {
     const response = await axios.post(url, paymentData, {
@@ -20,4 +20,4 @@ async function initializePayment(paymentData) {
   }
 }
 
-module.exports = initializePayment;
+module.exports = initiatePaystackPayment;

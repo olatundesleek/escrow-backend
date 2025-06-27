@@ -1,101 +1,126 @@
-const PaymentSetting = require("../models/PaymentSetting");
-const initiatePaystackPayment = require("./paystackService");
-const initiateFlutterwavePayment = require("./flutterwaveService");
-const Transaction = require("../models/Transaction");
-const Wallet = require("../models/Wallet");
 const mongoose = require("mongoose");
+const axios = require("axios");
 
-async function initiatePayment(escrowId, currency, userId) {
+const User = require("../models/User");
+const Wallet = require("../models/Wallet");
+const Escrow = require("../models/Escrow");
+const Transaction = require("../models/Transaction");
+const PaymentSetting = require("../models/PaymentSetting");
+
+const initiatePaystackPayment = require("./paymentgateway/paystack");
+const initiateFlutterwavePayment = require("./paymentgateway/flutterwave");
+
+async function initiatePayment(userId, escrowId) {
+  console.log(`Initiating payment for user: ${userId}, escrow: ${escrowId}`);
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const escrow = await Escrow.findById(escrowId);
-    if (!escrow) {
-      throw new Error("Escrow not found");
-    }
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    const User = await User.findById(userId);
-    if (!User) {
-      throw new Error("User not found");
-    }
-    const wallet = await Wallet.findOne({ userId: userId });
-    if (!wallet) {
-      throw new Error("Wallet not found");
-    }
-    if (userId !== escrow.buyer) {
+    const [escrow, user, wallet, setting] = await Promise.all([
+      Escrow.findById(escrowId),
+      User.findById(userId),
+      Wallet.findOne({ user: userId }),
+      PaymentSetting.findOne(),
+    ]);
+
+    if (!escrow) throw new Error("Escrow not found");
+    if (!user) throw new Error("User not found");
+    if (!wallet) throw new Error("Wallet not found");
+    if (!setting) throw new Error("Payment settings not found");
+
+    if (userId !== escrow.buyer.toString()) {
       throw new Error("You are not authorized to make this payment");
     }
 
-    const setting = await PaymentSetting.findOne();
-    if (!setting) {
-      throw new Error("Payment settings not found");
+    // Determine escrow fee based on payment responsibility
+    let fee = 0;
+    switch (escrow.escrowfeepayment) {
+      case "buyer":
+        fee = setting.fee;
+        break;
+      case "split":
+        fee = setting.fee / 2;
+        break;
+      case "seller":
+        fee = 0;
+        break;
+      default:
+        throw new Error("Invalid escrow fee payment type");
     }
+    const feeValue = Math.round(escrow.amount * (fee / 100));
 
-    let fee;
+    const Reference = `escrow_${escrow._id}_${Date.now()}`;
 
-    if (escrow.escrowfeepayment === "buyer") {
-      fee = setting.amount;
-    } else if (escrow.escrowfeepayment === "seller") {
-      fee = 0;
-    } else if (escrow.escrowfeepayment === "split") {
-      fee = setting.amount / 2;
-    } else {
-      throw new Error("Invalid escrow fee payment ");
-    }
+    const EscrowFee = feeValue * 100;
     const paymentData = {
-      userEmail: escrow.buyerEmail,
-      userId: userId,
-      escrowId: escrow._id,
-      escrowFee: fee * 100, // Convert to kobo for Nigerian Naira
-      amount: escrow.amount * 100, // Convert to kobo for Nigerian Naira
-      feeCurrency: setting.currency,
-      merchant: setting.merchant,
+      reference: Reference,
+      email: escrow.counterpartyEmail,
+      userId,
+      EscrowId: escrow._id,
+      amount: escrow.amount * 100 + EscrowFee, // Convert to kobo
+      FeeCurrency: setting.currency,
+      Merchant: setting.merchant,
     };
 
+    const totalAmount = escrow.amount + fee;
+    console.log(
+      `Total amount to be paid: ${totalAmount} (including fee: ${fee})`
+    );
+    console.log(escrow.creatorEmail, "Escrow creator email");
+    console.log(escrow.counterpartyEmail, "Escrow counterparty email");
     const transaction = new Transaction({
       user: userId,
       escrow: escrow._id,
       wallet: wallet._id,
+      direction: "debit",
+      role: "buyer",
       type: "escrow_payment",
-      from: {
-        user: escrow.buyerEmail,
-      },
-      to: {
-        user: escrow.sellerEmail,
-      },
-      reference: `escrow_${escrow._id}_${Date.now()}`,
-      amount: escrow.amount + fee,
+      from: escrow.counterpartyEmail,
+      to: escrow.creatorEmail,
+      reference: Reference,
+      amount: totalAmount,
       gateway: setting.merchant,
       metadata: {
         escrowId: escrow._id,
         userEmail: escrow.buyerEmail,
-        userId: userId,
-        fee: fee,
+        userId,
+        fee,
       },
       status: "initiated",
     });
 
-    await transaction.save();
+    await transaction.save({ session });
 
-    if (setting.merchant === "paystack") {
-      const payment = await initiatePaystackPayment(paymentData);
-      transaction.status = "pending";
-      transaction.merchant = "paystack";
-      await transaction.save();
-      return payment;
-    } else if (setting.merchant === "flutterwave") {
-      const payment = await initiateFlutterwavePayment(paymentData);
-      return payment;
-    } else {
-      throw new Error("Unsupported payment gateway");
+    let payment;
+    switch (setting.merchant) {
+      case "Paystack":
+        payment = await initiatePaystackPayment(paymentData);
+        transaction.status = "pending";
+        transaction.merchant = "paystack";
+        break;
+      case "Flutterwave":
+        payment = await initiateFlutterwavePayment(paymentData);
+        break;
+      default:
+        throw new Error("Unsupported payment gateway");
     }
+
+    await transaction.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+
+    return payment;
   } catch (error) {
-    throw new Error("Failed to initiate payment: " + error.message);
+    await session.abortTransaction();
+    session.endSession();
+    throw new Error(`Failed to initiate payment: ${error.message}`);
   }
 }
 
 async function confirmPayment(paymentId) {
   try {
-    const response = await axios.get(
+    const { data } = await axios.get(
       `https://api.paystack.co/transaction/verify/${paymentId}`,
       {
         headers: {
@@ -104,10 +129,13 @@ async function confirmPayment(paymentId) {
         },
       }
     );
-    return response.data;
+    return data;
   } catch (error) {
     throw error.response ? error.response.data : error;
   }
 }
 
-module.exports = { initiatePayment, confirmPayment };
+module.exports = {
+  initiatePayment,
+  confirmPayment,
+};

@@ -1,18 +1,13 @@
-const Payment = require("../models/Payment"); // Assuming there's a Payment model
 const Joi = require("joi");
-const paymentGateway = require("../utils/paymentGateway");
-const Escrow = require("../models/Escrow");
+const paymentservice = require("../utils/paymentservice");
 
 // Joi schemas
 const initiatePaymentSchema = Joi.object({
-  amount: Joi.number().positive().required(),
-  currency: Joi.string().required(),
-  userId: Joi.string().required(),
   escrowId: Joi.string().required(),
 });
 
 // Function to initiate a payment
-exports.initiatePayment = async (req, res) => {
+const initiatePayment = async (req, res) => {
   const { error } = initiatePaymentSchema.validate(req.body);
   if (error) {
     return res
@@ -21,10 +16,9 @@ exports.initiatePayment = async (req, res) => {
   }
 
   try {
-    const { amount, currency, userId, escrowId } = req.body;
-    const paymentDetails = await paymentGateway.initiatePayment(
-      amount,
-      currency,
+    const { escrowId } = req.body;
+    const userId = req.userId;
+    const paymentDetails = await paymentservice.initiatePayment(
       userId,
       escrowId
     );
@@ -35,12 +29,14 @@ exports.initiatePayment = async (req, res) => {
 };
 
 // Function to confirm a payment
-exports.confirmPayment = async (req, res) => {
+const confirmPayment = async (req, res) => {
   try {
     const { paymentId } = req.params;
-    const confirmation = await paymentGateway.confirmPayment(paymentId);
+    const confirmation = await paymentservice.confirmPayment(paymentId);
     res.status(200).json({ success: true, confirmation });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+module.exports = { initiatePayment, confirmPayment };

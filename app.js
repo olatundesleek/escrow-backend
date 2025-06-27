@@ -39,6 +39,7 @@ const escrowRoutes = require("./routes/escrowRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const siteRoutes = require("./routes/siteRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 // const disputeRoutes = require('./routes/disputeRoutes');
 // const authMiddleware = require('./middleware/authMiddleware');
 
@@ -48,6 +49,7 @@ app.use("/api", escrowRoutes);
 app.use("/api", profileRoutes);
 app.use("/api", siteRoutes);
 app.use("/api", adminRoutes);
+app.use("/api", paymentRoutes);
 // app.use("/api", profileRoutes);
 // app.use('/api/payment', paymentRoutes);
 // app.use('/api/dispute', disputeRoutes);

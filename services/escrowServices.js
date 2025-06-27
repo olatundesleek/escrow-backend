@@ -163,6 +163,7 @@ async function acceptNewEscrow(userId, escrowId) {
     const userIds = [escrow.buyer.toString(), escrow.seller.toString()];
 
     try {
+      console.log(getIo() + "this is the io");
       const connectedUsers = getConnectedUsers();
       userIds.forEach((userId) => {
         const socketId = connectedUsers.get(userId);
@@ -259,8 +260,11 @@ async function getEscrowById(escrowId, userId) {
 async function getAllEscrows(userId, { page, limit, status }) {
   try {
     const userEscrows = await User.findById(userId)
-      .populate("escrows") // Populate the 'escrows' field
-      .exec(); // Ensure the query is executed
+      .populate({
+        path: "escrows",
+        options: { sort: { createdAt: -1 } },
+      })
+      .exec();
 
     if (!userEscrows) throw new Error("User not found");
 

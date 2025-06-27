@@ -17,16 +17,16 @@ const transactionSchema = new mongoose.Schema(
       ref: "Wallet",
     },
     from: {
-      user: {
-        type: String,
-        required: true,
-      },
+      type: String,
+      required: true,
     },
     to: {
-      user: {
-        type: String,
-        required: true,
-      },
+      type: String,
+      required: true,
+    },
+    to: {
+      type: String,
+      required: true,
     },
     type: {
       type: String,

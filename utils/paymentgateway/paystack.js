@@ -6,6 +6,17 @@ const axios = require("axios");
  * @returns {Promise<Object>} - Paystack response
  */
 async function initiatePaystackPayment(paymentData) {
+  console.log("Initiating Paystack payment with data:", paymentData);
+  if (
+    !paymentData ||
+    !paymentData.amount ||
+    !paymentData.email ||
+    !paymentData.reference
+  ) {
+    throw new Error(
+      "Invalid payment data. Amount, email, and reference are required."
+    );
+  }
   const url = "https://api.paystack.co/transaction/initialize";
   try {
     const response = await axios.post(url, paymentData, {

@@ -134,11 +134,6 @@ const acceptEscrow = async (req, res) => {
   try {
     const userId = req.userId;
     const escrow = await acceptNewEscrow(userId, escrowId);
-    io.emit("dataupdated", {
-      message: "Escrow accepted",
-      escrowId: escrow._id,
-      userId: userId,
-    });
 
     return res.status(200).json({
       message: "Escrow accepted successfully",
@@ -172,11 +167,6 @@ const rejectEscrow = async (req, res) => {
   try {
     const userId = req.userId;
     const escrow = await rejectNewEscrow(userId, escrowId);
-    io.emit("dataupdated", {
-      message: "Escrow rejected",
-      escrowId: escrow._id,
-      userId: userId,
-    });
 
     return res.status(200).json({
       success: true,

@@ -162,16 +162,28 @@ async function acceptNewEscrow(userId, escrowId) {
 
     const userIds = [escrow.buyer.toString(), escrow.seller.toString()];
 
+    // const userIds = ["68307ee793e4b7137cb7ca4a"];
+
     try {
-      console.log(getIo() + "this is the io");
+      const io = getIo();
       const connectedUsers = getConnectedUsers();
+      console.log("Connected users:", Array.from(connectedUsers.entries()));
+
       userIds.forEach((userId) => {
-        const socketId = connectedUsers.get(userId);
-        if (socketId) {
-          getIo().to(socketId).emit("escrowUpdated", {
-            escrowId,
-            data: escrow,
-          });
+        const user = connectedUsers.get(userId);
+        const socketId = user?.socketId;
+
+        const socket = io.sockets.sockets.get(socketId);
+
+        if (!socket) {
+          console.warn(`Socket not found or disconnected: ${socketId}`);
+          return;
+        }
+
+        try {
+          socket.emit("escrowUpdated", { escrowId, data: escrow });
+        } catch (err) {
+          console.error(" Emit error:", err.message);
         }
       });
     } catch (err) {
@@ -212,10 +224,40 @@ const rejectNewEscrow = async (userId, escrowId) => {
     escrow.chatActive = false;
     escrow.chat = null; // Remove chat reference
     await escrow.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+    const userIds = [escrow.creator.toString()];
+
+    // const userIds = ["68307ee793e4b7137cb7ca4a"];
+
+    try {
+      const io = getIo();
+      const connectedUsers = getConnectedUsers();
+
+      userIds.forEach((userId) => {
+        const user = connectedUsers.get(userId);
+        const socketId = user?.socketId;
+
+        const socket = io.sockets.sockets.get(socketId);
+
+        if (!socket) {
+          console.warn(`Socket not found or disconnected: ${socketId}`);
+          return;
+        }
+
+        try {
+          socket.emit("escrowUpdated", { escrowId, data: escrow });
+        } catch (err) {
+          console.error(" Emit error:", err.message);
+        }
+      });
+    } catch (err) {
+      console.error("Failed to emit escrow update via socket:", err.message);
+    }
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    console.error("Error in rejectNewEscrow:", error.message);
+
     throw new Error("Failed to reject escrow: " + error.message);
   }
 };
@@ -259,22 +301,27 @@ async function getEscrowById(escrowId, userId) {
 
 async function getAllEscrows(userId, { page, limit, status }) {
   try {
-    const userEscrows = await User.findById(userId)
-      .populate({
-        path: "escrows",
-        options: { sort: { createdAt: -1 } },
-      })
-      .exec();
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
 
-    if (!userEscrows) throw new Error("User not found");
+    const userEmail = user.email.toLowerCase();
+
+    const userEscrows = await Escrow.find({
+      $or: [{ creatorEmail: userEmail }, { counterpartyEmail: userEmail }],
+    })
+      .sort({ createdAt: -1 }) // Sort by creation date, most recent first
+      .skip((page - 1) * limit) // Pagination: skip to the correct page
+      .limit(limit); // Limit the number of results per page
+
+    if (!userEscrows) throw new Error("Escrows not found");
 
     // Filter escrows by status (if provided)
-    let escrows = userEscrows.escrows;
+    let escrows = userEscrows;
 
     if (status !== "all") {
       escrows = escrows.filter((escrow) => escrow.status === status);
     }
-    console.log("this is my status,page,limit:", status, page, limit);
+
     // Pagination on escrows
     const totalEscrows = escrows.length;
     const paginatedEscrows = escrows.slice((page - 1) * limit, page * limit);

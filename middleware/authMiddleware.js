@@ -42,25 +42,26 @@ const isAdmin = (req, res, next) => {
 };
 
 const verifySocketToken = async (socket, next) => {
-  const rawCookies = socket.handshake.auth?.token;
-
-  if (!rawCookies) return next(new Error("Authentication error,no token sent"));
-
-  const ptoken = rawCookies; // Assuming the token is directly passed in auth field
-  console.log("Parsed token from socket:", ptoken);
   try {
-    const decoded = verifySignInToken(ptoken);
-    if (!decoded) return next(new Error("Authentication error"));
+    const token = socket.handshake.auth?.token;
+    if (!token)
+      return next(new Error("Authentication error: no token provided"));
+
+    const decoded = await verifySignInToken(token); // Make sure this is async or throws
+    if (!decoded || !decoded.id)
+      return next(new Error("Invalid or expired token"));
 
     const user = await User.findById(decoded.id);
-    if (!user) return next(new Error("Authentication error"));
+    if (!user) return next(new Error("User not found"));
 
     socket.userId = user._id.toString();
     socket.username = user.username;
     socket.role = user.role;
-    next(); // success
+
+    next(); // pass the socket through
   } catch (err) {
-    next(new Error("Authentication error")); // fails safely
+    console.error("Socket authentication failed:", err.message || err);
+    next(new Error("Authentication error"));
   }
 };
 

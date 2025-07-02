@@ -47,6 +47,12 @@ async function initiateEscrowPayment(userId, escrowId) {
         "Escrow is not active. Accept the escrow before making a payment."
       );
     }
+    if (userId !== escrow.buyer) {
+      throw new Error("You are not authorized to make this payment");
+    }
+    if (escrow.paymentStatus !== "unpaid") {
+      throw new Error("Payment has already been made for this escrow");
+    }
 
     let fee = 0;
     switch (escrow.escrowfeepayment) {

@@ -47,7 +47,7 @@ async function initiateEscrowPayment(userId, escrowId) {
         "Escrow is not active. Accept the escrow before making a payment."
       );
     }
-    if (userId !== escrow.buyer) {
+    if (userId.toString() !== escrow.buyer.toString()) {
       throw new Error("You are not authorized to make this payment");
     }
     if (escrow.paymentStatus !== "unpaid") {

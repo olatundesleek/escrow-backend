@@ -8,7 +8,7 @@ const generateCounterpartyEscrowEmail = (
   description,
   terms
 ) => {
-  const link = `${process.env.WEBLINK}api/escrow/${escrowId}`;
+  const link = `${process.env.WEBLINK}api/escrows/${escrowId}`;
   const userRoleDescription = creatorRole === "buyer" ? "seller" : "buyer";
   const counterpartyRoleDescription =
     creatorRole === "buyer" ? "buyer" : "seller";
@@ -121,7 +121,7 @@ const generateCounterpartyEscrowEmail = (
       To continue with this transaction, please confirm your participation by
       clicking the button below:
 </p>
-<a target="_blank" href="http://${link}" class="cta-button">Confirm Transaction</a>
+<a target="_blank" href="http://${link}" class="cta-button">View Escrow</a>
  <p>
       If you have any questions or concerns, don’t hesitate to contact our
       support team.

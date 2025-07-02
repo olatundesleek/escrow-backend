@@ -10,7 +10,6 @@ const transactionSchema = new mongoose.Schema(
     escrow: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Escrow",
-      required: true,
     },
     wallet: {
       type: mongoose.Schema.Types.ObjectId,
@@ -18,16 +17,11 @@ const transactionSchema = new mongoose.Schema(
     },
     from: {
       type: String,
-      required: true,
     },
     to: {
       type: String,
-      required: true,
     },
-    to: {
-      type: String,
-      required: true,
-    },
+
     type: {
       type: String,
       enum: [
@@ -58,7 +52,6 @@ const transactionSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ["buyer", "seller"],
-      required: true,
     },
     direction: {
       type: String,
@@ -69,14 +62,17 @@ const transactionSchema = new mongoose.Schema(
       type: String,
       default: "paystack",
     },
-    metadata: {
-      type: Object,
-      default: {},
-    },
   },
   {
     timestamps: true,
-  }
+  },
+
+  { updatedAt: { type: Date, default: Date.now } }
 );
+
+transactionSchema.pre("save", function (next) {
+  this.updatedAt = Date.now();
+  next();
+});
 
 module.exports = mongoose.model("Transaction", transactionSchema);

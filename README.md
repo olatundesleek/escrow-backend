@@ -604,23 +604,13 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "message": "Escrow created successfully",
-      "escrow": { /* escrow object */ }
+      "escrow": {
+        /* escrow object */
+      }
     }
     ```
-  - Error (400):
-    ```json
-    {
-      "message": "Validation error",
-      "details": ["Error details here"]
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "message": "Error creating escrow",
-      "error": "Internal server error"
-    }
-    ```
+  - Error (400/500):  
+    See error format below.
 
 ---
 
@@ -640,23 +630,13 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": true,
       "message": "Escrows retrieved successfully",
-      "escrows": [ /* array of escrow objects */ ]
+      "escrows": [
+        /* array of escrow objects */
+      ]
     }
     ```
-  - Error (404):
-    ```json
-    {
-      "message": "No escrows found for this user"
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "success": false,
-      "message": "Error retrieving escrows",
-      "error": "Internal server error"
-    }
-    ```
+  - Error (404/500):  
+    See error format below.
 
 ---
 
@@ -671,29 +651,13 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "message": "Escrow details retrieved successfully",
-      "escrow": { /* escrow object */ }
+      "escrow": {
+        /* escrow object */
+      }
     }
     ```
-  - Error (400):
-    ```json
-    {
-      "message": "Validation error",
-      "details": ["Error details here"]
-    }
-    ```
-  - Error (404):
-    ```json
-    {
-      "message": "Escrow not found"
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "message": "Error retrieving escrow details",
-      "error": "Internal server error"
-    }
-    ```
+  - Error (400/404/500):  
+    See error format below.
 
 ---
 
@@ -715,29 +679,13 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "message": "Escrow updated successfully",
-      "escrow": { /* updated escrow object */ }
+      "escrow": {
+        /* updated escrow object */
+      }
     }
     ```
-  - Error (400):
-    ```json
-    {
-      "message": "Validation error",
-      "details": ["Error details here"]
-    }
-    ```
-  - Error (404):
-    ```json
-    {
-      "message": "Escrow not found"
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "message": "Error updating escrow",
-      "error": "Internal server error"
-    }
-    ```
+  - Error (400/404/500):  
+    See error format below.
 
 ---
 
@@ -758,23 +706,13 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "message": "Escrow accepted successfully",
-      "escrow": { /* escrow object */ }
+      "escrow": {
+        /* escrow object */
+      }
     }
     ```
-  - Error (400):
-    ```json
-    {
-      "message": "Validation error",
-      "details": ["Error details here"]
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "message": "Error accepting escrow",
-      "error": "Internal server error"
-    }
-    ```
+  - Error (400/500):  
+    See error format below.
 
 ---
 
@@ -796,24 +734,34 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": true,
       "message": "Escrow Rejected Successfully",
-      "escrow": { /* escrow object */ }
+      "escrow": {
+        /* escrow object */
+      }
     }
     ```
-  - Error (400):
-    ```json
-    {
-      "message": "Validation error",
-      "details": ["Error details here"]
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "success": false,
-      "message": "Error rejecting escrow",
-      "error": "Internal server error"
-    }
-    ```
+  - Error (400/500):  
+    See error format below.
+
+---
+
+**Error Format Example**:
+
+```json
+{
+  "message": "Validation error",
+  "details": ["Error details here"]
+}
+```
+
+or
+
+```json
+{
+  "success": false,
+  "message": "Error message",
+  "error": "Internal server error"
+}
+```
 
 ---
 
@@ -821,13 +769,14 @@ Ensure the following environment variables are set in your `.env` file:
 
 #### Initiate a Payment
 
-- **Endpoint**: `POST /api/payment/initiate`
+- **Endpoint**: `POST /api/pay`
+- **Description**: Initiate a payment for an escrow.
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
-    "amount": 5000,
-    "currency": "USD",
-    "userId": "12345"
+    "escrowId": "12345"
   }
   ```
 - **Response**:
@@ -836,8 +785,7 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": true,
       "paymentDetails": {
-        "id": "payment123",
-        "status": "pending"
+        /* payment details */
       }
     }
     ```
@@ -845,13 +793,37 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "success": false,
-      "message": "Validation error or Internal server error"
+      "message": "Validation error" // or error message
     }
     ```
 
+---
+
+#### Paystack Webhook (for payment status updates)
+
+- **Endpoint**: `POST /api/webhook/paystack`
+- **Description**: Paystack webhook endpoint for payment status updates.
+- **Headers**:  
+  `x-paystack-signature: <signature>`
+- **Request Body**: Raw Paystack event payload.
+- **Response**:
+  - Success (200):
+    ```json
+    { "success": true, "message": "Payment status updated" }
+    ```
+  - Error (400/401/500):
+    ```json
+    { "success": false, "message": "Error message" }
+    ```
+
+---
+
 #### Confirm a Payment
 
-- **Endpoint**: `POST /api/payment/confirm`
+- **Endpoint**: `POST /api/confirm`
+- **Description**: Confirm a payment.
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
@@ -863,34 +835,12 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "success": true,
-      "confirmation": {
-        "status": "success"
-      }
+      "confirmation": { "status": "success" }
     }
     ```
   - Error (500):
     ```json
-    {
-      "success": false,
-      "message": "Internal server error"
-    }
-    ```
-
-#### Check Payment Status
-
-- **Endpoint**: `GET /api/payment/status/:paymentId`
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "status": "success"
-    }
-    ```
-  - Error (404/500):
-    ```json
-    {
-      "message": "Payment not found or Internal server error"
-    }
+    { "success": false, "message": "Internal server error" }
     ```
 
 ---

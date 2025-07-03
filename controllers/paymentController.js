@@ -37,68 +37,87 @@ const initiatePayment = async (req, res) => {
 
 const updatePaymentStatus = async (req, res) => {
   try {
-    // Signature verification
-    const hash = crypto
+    // Step 1: Convert raw body to string for signature verification
+    const rawBody = req.body.toString("utf8");
+    const receivedSignature = req.headers["x-paystack-signature"];
+
+    const generatedHash = crypto
       .createHmac("sha512", PAYSTACK_SECRET_KEY)
-      .update(req.body)
+      .update(rawBody)
       .digest("hex");
 
-    if (hash !== req.headers["x-paystack-signature"]) {
+    if (generatedHash !== receivedSignature) {
+      console.error("❌ Signature mismatch");
       return res.status(401).send("Unauthorized");
     }
 
-    const event = JSON.parse(req.body.toString("utf8"));
+    // Step 2: Parse the raw JSON body
+    const event = JSON.parse(rawBody);
 
-    if (!event || !event.data || !event.data.metadata) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid webhook payload" });
+    // Step 3: Basic payload validation
+    const { data } = event;
+    if (!data || !data.metadata || !data.reference) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid webhook payload structure",
+      });
     }
 
-    const { reference, metadata } = event.data;
+    const { reference, metadata } = data;
 
-    // Verify transaction status via Paystack API
+    // Step 4: Verify transaction status with Paystack
     const verifyUrl = `${PaystackBaseUrl}/transaction/verify/${reference}`;
     const verifyRes = await axios.get(verifyUrl, {
       headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
     });
 
-    const verified =
-      verifyRes.data &&
-      verifyRes.data.data &&
-      verifyRes.data.data.status === "success";
+    const isSuccess = verifyRes?.data?.data?.status === "success";
 
-    if (!verified) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Transaction not successful" });
+    if (!isSuccess) {
+      return res.status(400).json({
+        success: false,
+        message: "Transaction verification failed or not successful",
+      });
     }
 
     const amount = verifyRes.data.data.amount / 100;
 
-    if (metadata.type === "escrow") {
-      await Escrow.findByIdAndUpdate(metadata.escrowId, {
-        paymentStatus: "paid",
-      });
-    } else if (metadata.type === "addfunds") {
-      await Wallet.findOneAndUpdate(
-        { userId: metadata.userId },
-        { $inc: { totalBalance: amount } } // increment by the amount paid
-      );
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "Unknown payment type" });
+    // Step 5: Update payment record based on metadata
+    switch (metadata.type) {
+      case "escrow":
+        await Escrow.findByIdAndUpdate(metadata.escrowId, {
+          paymentStatus: "paid",
+        });
+        break;
+
+      case "addfunds":
+        await Wallet.findOneAndUpdate(
+          { userId: metadata.userId },
+          { $inc: { totalBalance: amount } }
+        );
+        break;
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: "Unknown payment type in metadata",
+        });
     }
 
-    res.status(200).json({ success: true, message: "Payment status updated" });
+    // Step 6: Respond with success
+    return res.status(200).json({
+      success: true,
+      message: "Payment status updated successfully",
+    });
   } catch (error) {
-    console.error("Webhook Error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    console.error("🔥 Webhook Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error processing webhook",
+      error: error.message,
+    });
   }
 };
-
-module.exports = updatePaymentStatus;
 
 // Function to confirm a payment
 const confirmPayment = async (req, res) => {

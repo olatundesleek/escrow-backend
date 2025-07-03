@@ -4,7 +4,7 @@ const { updatePaymentStatus } = require("../controllers/paymentController");
 
 // route for paystack webhook
 router.post(
-  "/webhook/paystack",
+  "/paystack",
   express.raw({ type: "application/json" }),
   updatePaymentStatus
 );

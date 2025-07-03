@@ -48,6 +48,9 @@ const updatePaymentStatus = async (req, res) => {
 
     if (generatedHash !== receivedSignature) {
       console.error("❌ Signature mismatch");
+      console.error("❌ Signature mismatch");
+      console.log("Expected:", generatedHash);
+      console.log("Received:", receivedSignature);
       return res.status(401).send("Unauthorized");
     }
 

@@ -31,6 +31,12 @@ app.use(
 app.options("*", cors());
 
 const cookieParser = require("cookie-parser");
+
+// webhookRoutes
+const webhookRoutes = require("./routes/webhookRoutes");
+
+app.use("/api", webhookRoutes);
+
 app.use(bodyParser.json());
 app.use(cookieParser());
 

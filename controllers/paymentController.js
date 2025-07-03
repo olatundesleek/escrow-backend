@@ -45,10 +45,9 @@ const updatePaymentStatus = async (req, res) => {
       .createHmac("sha512", PAYSTACK_SECRET_KEY)
       .update(rawBody)
       .digest("hex");
+    console.log("Body is buffer:", Buffer.isBuffer(req.body)); // Should be true
 
     if (generatedHash !== receivedSignature) {
-      console.error("❌ Signature mismatch");
-      console.error("❌ Signature mismatch");
       console.log("Expected:", generatedHash);
       console.log("Received:", receivedSignature);
       return res.status(401).send("Unauthorized");

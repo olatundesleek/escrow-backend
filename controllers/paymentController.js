@@ -76,9 +76,6 @@ const updatePaymentStatus = async (req, res) => {
     const isSuccess = verifyRes?.data?.data?.status === "success";
 
     if (!isSuccess) {
-      console.log("verify response:", verifyRes);
-      console.log("verify url:", verifyUrl);
-      console.log("❌ Transaction verification failed:", verifyRes.data);
       return res.status(400).json({
         success: false,
         message: "Transaction verification failed or not successful",
@@ -86,10 +83,10 @@ const updatePaymentStatus = async (req, res) => {
     }
 
     const amount = verifyRes.data.data.amount / 100;
-
+    console.log(metadata.type, "metadata type");
     // Step 5: Update payment record based on metadata
     switch (metadata.type) {
-      case "escrow":
+      case "escrowPayment":
         await Escrow.findByIdAndUpdate(metadata.escrowId, {
           paymentStatus: "paid",
         });

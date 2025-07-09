@@ -46,7 +46,7 @@ const transactionSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["initiated", "success", "failed", "pending"],
-      default: "pending",
+      default: "initiated",
       required: true,
     },
     role: {
@@ -60,7 +60,7 @@ const transactionSchema = new mongoose.Schema(
     },
     gateway: {
       type: String,
-      default: "paystack",
+      enum: ["paystack", "flutterwave", "stripe", "bank_transfer", "wallet"],
     },
   },
   {

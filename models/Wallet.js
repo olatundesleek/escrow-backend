@@ -18,11 +18,7 @@ const walletSchema = new mongoose.Schema(
       default: 0, // Funds reserved for pending or escrowed actions
       required: true,
     },
-    // availableBalance: {
-    //   type: Number,
-    //   default: 0, // Funds available for withdrawal or spending
-    //   required: true,
-    // },
+
     currency: {
       type: String,
       default: "NGN",
@@ -48,7 +44,11 @@ walletSchema.methods.deposit = function (amount) {
 walletSchema.methods.withdraw = function (amount) {
   if (amount <= 0) throw new Error("Invalid withdrawal amount");
   const available = this.totalBalance - this.lockedBalance;
-  if (available < amount) throw new Error("Insufficient available balance");
+  if (available < amount) {
+    const error = new Error("Insufficient available balance");
+    error.statusCode = 422;
+    throw error;
+  }
   this.totalBalance -= amount;
   return this.save();
 };
@@ -57,8 +57,11 @@ walletSchema.methods.withdraw = function (amount) {
 walletSchema.methods.lockFunds = function (amount) {
   if (amount <= 0) throw new Error("Invalid lock amount");
   const available = this.totalBalance - this.lockedBalance;
-  if (available < amount)
-    throw new Error("Insufficient available balance to lock");
+  if (available < amount) {
+    const error = new Error("Insufficient available balance");
+    error.statusCode = 422;
+    throw error;
+  }
   this.lockedBalance += amount;
   return this.save();
 };

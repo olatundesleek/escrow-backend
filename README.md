@@ -776,7 +776,8 @@ or
 - **Request Body**:
   ```json
   {
-    "escrowId": "12345"
+    "escrowId": "12345",
+    "method": "wallet or paymentgateway"
   }
   ```
 - **Response**:
@@ -799,37 +800,12 @@ or
 
 ---
 
-#### Paystack Webhook (for payment status updates)
-
-- **Endpoint**: `POST /api/webhook/paystack`
-- **Description**: Paystack webhook endpoint for payment status updates.
-- **Headers**:  
-  `x-paystack-signature: <signature>`
-- **Request Body**: Raw Paystack event payload.
-- **Response**:
-  - Success (200):
-    ```json
-    { "success": true, "message": "Payment status updated" }
-    ```
-  - Error (400/401/500):
-    ```json
-    { "success": false, "message": "Error message" }
-    ```
-
----
-
 #### Confirm a Payment
 
-- **Endpoint**: `POST /api/confirm`
-- **Description**: Confirm a payment.
+- **Endpoint**: `GET /api/confirm-payment/:reference`
+- **Description**: Confirm a payment using the payment reference.
 - **Headers**:  
   `Authorization: Bearer <token>`
-- **Request Body**:
-  ```json
-  {
-    "paymentId": "payment123"
-  }
-  ```
 - **Response**:
   - Success (200):
     ```json

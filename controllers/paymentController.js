@@ -31,7 +31,13 @@ const initiatePayment = async (req, res) => {
       escrowId,
       method
     );
-    res.status(200).json({ success: true, paymentDetails });
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Payment made successfully",
+        paymentDetails,
+      });
   } catch (error) {
     console.log(error);
     const status = error.statusCode || 500;

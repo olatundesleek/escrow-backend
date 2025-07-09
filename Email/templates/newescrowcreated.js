@@ -60,25 +60,25 @@ const generateCreateEscrowEmail = (
         </style>
       </head>
       <body>
-        <h1>New Escrow Created</h1>
+        <h1>New Trade Created</h1>
         <p>Dear ${creatorFirstName},</p>
-        <p>We are pleased to inform you that a new escrow has been successfully created for your transaction.</p>
+        <p>We are pleased to inform you that a new Trade has been successfully created for your transaction.</p>
         
         <div class="details-list">
           <p><strong>Your Role:</strong> As the ${userRoleDescription}, you are responsible for fulfilling the terms of the agreement on your side of the transaction.</p>
           <p><strong>Counterparty Role:</strong> The other party in this transaction is ${counterpartyRoleDescription}.</p>
-          <p><strong>Escrow Process:</strong> Funds are securely held until both parties confirm the terms have been fulfilled. Once confirmed, funds will be released appropriately.</p>
+          <p><strong>Trade Process:</strong> Funds are securely held until both parties confirm the terms have been fulfilled. Once confirmed, funds will be released appropriately.</p>
         </div>
 
         <div class="details-list">
-          <p><strong>What this escrow is about:</strong></p>
+          <p><strong>What this Trade is about:</strong></p>
           <p>${description}</p>
         </div>
 
         <div class="details-list">
-          <p><strong>Escrow Details:</strong></p>
+          <p><strong>Trade Details:</strong></p>
           <ul>
-            <li><strong>Escrow ID:</strong> ${escrowId}</li>
+            <li><strong>Trade ID:</strong> ${escrowId}</li>
             <li><strong>Amount:</strong> ₦${amount}</li>
             <li><strong>Created At:</strong> ${new Date(
               createdAt

@@ -9,27 +9,33 @@ const PaystackBaseUrl = process.env.PAYSTACK_BASE_URL;
 // Joi schemas
 const initiatePaymentSchema = Joi.object({
   escrowId: Joi.string().required(),
+  method: Joi.string().valid("paymentgateway", "wallet").required(),
 });
-
+const confirmPaymentSchema = Joi.object({
+  reference: Joi.string().min(10).required(),
+});
 // Function to initiate a payment
 const initiatePayment = async (req, res) => {
   const { error } = initiatePaymentSchema.validate(req.body);
   if (error) {
     return res
       .status(400)
-      .json({ message: "Validation error", details: error.details });
+      .json({ success: false, message: error.details[0].message });
   }
 
   try {
-    const { escrowId } = req.body;
+    const { escrowId, method } = req.body;
     const userId = req.userId;
     const paymentDetails = await paymentservice.initiateEscrowPayment(
       userId,
-      escrowId
+      escrowId,
+      method
     );
     res.status(200).json({ success: true, paymentDetails });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.log(error);
+    const status = error.statusCode || 500;
+    res.status(status).json({ success: false, message: error.message });
   }
 };
 
@@ -48,8 +54,6 @@ const updatePaymentStatus = async (req, res) => {
     console.log("Body is buffer:", Buffer.isBuffer(req.body)); // Should be true
 
     if (generatedHash !== receivedSignature) {
-      console.log("Expected:", generatedHash);
-      console.log("Received:", receivedSignature);
       return res.status(401).send("Unauthorized");
     }
 
@@ -89,6 +93,7 @@ const updatePaymentStatus = async (req, res) => {
       case "escrowPayment":
         await Escrow.findByIdAndUpdate(metadata.escrowId, {
           paymentStatus: "paid",
+          paidWith: "paymentgateway",
         });
         break;
 
@@ -123,12 +128,23 @@ const updatePaymentStatus = async (req, res) => {
 
 // Function to confirm a payment
 const confirmPayment = async (req, res) => {
+  const { error } = confirmPaymentSchema.validate(req.params);
+  if (error) {
+    return res
+      .status(400)
+      .json({ success: false, message: error.details[0].message });
+  }
   try {
-    const { paymentId } = req.params;
-    const confirmation = await paymentservice.confirmPayment(paymentId);
+    const reference = req.params.reference;
+
+    const confirmation = await paymentservice.confirmPayment(reference);
     res.status(200).json({ success: true, confirmation });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    const status = error.statusCode || 500;
+    res.status(status).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 

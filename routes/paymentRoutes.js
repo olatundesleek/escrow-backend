@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {
   initiatePayment,
-  updatePaymentStatus,
+
   confirmPayment,
 } = require("../controllers/paymentController");
 const { authMiddleware } = require("../middleware/authMiddleware");
@@ -18,7 +18,7 @@ router.post("/pay", authMiddleware, initiatePayment);
 // );
 
 // Route to confirm a payment
-router.post("/confirm", authMiddleware, confirmPayment);
+router.get("/confirm-payment/:reference", authMiddleware, confirmPayment);
 
 // Route to get payment status
 // router.get("/status", authMiddleware, (req, res) => {

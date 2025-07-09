@@ -35,6 +35,10 @@ const escrowSchema = new mongoose.Schema(
       enum: ["unpaid", "paid"],
       default: "unpaid",
     },
+    paidWith: {
+      type: String,
+      enum: ["wallet", "paymentgateway"],
+    },
     escrowfeepayment: {
       type: String,
       enum: ["buyer", "seller", "split"],

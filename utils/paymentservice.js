@@ -13,12 +13,10 @@ const initiateFlutterwavePayment = require("./paymentgateway/flutterwave");
 // function to add a new transaction
 const addTransaction = async (transactionData) => {
   try {
-    console.log("Adding transaction:", transactionData);
     const transaction = new Transaction(transactionData);
     await transaction.save();
     return transaction;
   } catch (error) {
-    console.error("Error adding transaction:", error);
     throw error;
   }
 };
@@ -42,13 +40,9 @@ async function lockUserFunds(userId, amount) {
 }
 
 async function initiateEscrowPayment(userId, escrowId, method) {
-  console.log(
-    `Initiating payment for user: ${userId}, escrow: ${escrowId}, method: ${method}`
-  );
-
   const session = await mongoose.startSession();
   session.startTransaction();
-
+  console.log("payment method", method);
   try {
     // Load required records
     const [escrow, user, wallet, setting] = await Promise.all([
@@ -164,9 +158,11 @@ async function initiateEscrowPayment(userId, escrowId, method) {
     if (method === "paymentgateway") {
       switch (setting.merchant) {
         case "paystack":
+          console.log("Using Paystack for payment");
           payment = await initiatePaystackPayment(paymentData);
           transaction.status = "pending";
           transaction.merchant = "paystack";
+          return payment; // Return payment response directly
           break;
         case "flutterwave":
           payment = await initiateFlutterwavePayment(paymentData);

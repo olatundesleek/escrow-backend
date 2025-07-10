@@ -276,7 +276,11 @@ async function getEscrowById(escrowId, userId) {
     if (userId !== escrow.creator.toString()) {
       const user = await User.findById(userId);
       if (!user) throw new Error("User not found");
-
+      console.log("this is the user email", user.email.toLowerCase());
+      console.log(
+        "this is the escrow counterparty email",
+        escrow.counterpartyEmail.toLowerCase()
+      );
       if (
         user.email.toLowerCase() !== escrow.counterpartyEmail.toLowerCase() &&
         user.role !== "admin"

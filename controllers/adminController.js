@@ -7,6 +7,7 @@ const {
   getAllTransactions,
   getAllUsers,
   getUser,
+  getTransactionByReference,
   performUserAction,
   paymentSettingService,
 } = require("../services/adminServices");
@@ -47,6 +48,10 @@ const paymentSettingSchema = Joi.object({
   merchant: Joi.string().valid("Paystack", "Flutterwave", "Bank Transfer"),
   currency: Joi.string().valid("USD", "EUR", "NGN"),
 }).or("fee", "merchant", "currency"); // at least one of these must be present
+
+const transactionSchema = Joi.object({
+  reference: Joi.string().required(),
+});
 
 // Controller: Dashboard
 const getDashboardData = async (req, res) => {
@@ -127,7 +132,7 @@ const adminGetEscrowDetails = async (req, res) => {
 };
 
 // Controller: Transactions
-const getTransactionData = async (req, res) => {
+const getTransactionsData = async (req, res) => {
   try {
     const { error, value } = paginationSchema.validate(req.query);
     if (error) {
@@ -149,6 +154,33 @@ const getTransactionData = async (req, res) => {
       success: false,
       message: "Error fetching transaction details",
       error,
+    });
+  }
+};
+
+const getTransaction = async (req, res) => {
+  const { error } = transactionSchema.validate(req.params);
+  if (error) {
+    return res.status(400).json({
+      message: "Validation error",
+      details: error.details.map((detail) => detail.message),
+    });
+  }
+
+  const reference = req.params.reference;
+
+  try {
+    const transaction = await getTransactionByReference(reference);
+
+    return res.status(200).json({
+      message: "Transaction details retrieved successfully",
+      transaction,
+    });
+  } catch (err) {
+    console.error("Get Transaction Details Error:", err);
+    return res.status(err.statusCode || 500).json({
+      message: "Error retrieving transaction details",
+      error: err.message || "Internal server error",
     });
   }
 };
@@ -285,8 +317,9 @@ const paymentSettings = async (req, res) => {
 
 module.exports = {
   getDashboardData,
+  getTransaction,
   getEscrows,
-  getTransactionData,
+  getTransactionsData,
   getAllUsersData,
   getUserData,
   userAction,

@@ -3,34 +3,54 @@ const Escrow = require("../models/Transaction.js");
 const {
   getTransaction,
   getTransactions,
-} = require("../services/transactionServices.js");
+} = require("../services/transactionService.js");
 
 // const getTransactionSchema = Joi.object({
 //  // Assuming ID is a string, adjust if using ObjectId
 // });
 const getTransactionSchema = Joi.object({
-  id: Joi.string().required(), // Assuming ID is a string, adjust if using ObjectId
+  reference: Joi.string().required(), // Assuming ID is a string, adjust if using ObjectId
 });
 
 // Create a new escrow transaction
 
-const getTransaction = async (req, res) => {
+const getUserTransaction = async (req, res) => {
   const { error } = getTransactionSchema.validate(req.params);
-  if (error) {
-    return res.status(400).json({
-      message: "Validation error",
-      details: error.details.map((detail) => detail.message),
+  try {
+    if (error) {
+      return res.status(400).json({
+        message: "Validation error",
+        details: error.details.map((detail) => detail.message),
+      });
+    }
+  } catch (error) {
+    console.error("Validation error:", error);
+    return res.status(400).json({ message: "Validation error" });
+  }
+
+  try {
+    const userId = req.userId;
+    const reference = req.params.reference;
+    if (!reference) {
+      return res.status(400).json({ message: "Reference is required" });
+    }
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const transaction = await getTransaction(reference, userId);
+
+    return res.status(200).json({ success: true, transaction });
+  } catch (error) {
+    console.error("Error fetching transaction:", error);
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Internal server error",
     });
   }
-
-  const transaction = await getTransaction(req.params.id, req.userId);
-  if (!transaction) {
-    return res.status(404).json({ message: "Transaction not found" });
-  }
-  return res.status(200).json(transaction);
 };
 
-const getAllTransactions = async (req, res) => {
+const getUserTransactions = async (req, res) => {
   const userId = req.userId;
   const query = req.query;
   const page = parseInt(query.page) || 1;
@@ -38,7 +58,7 @@ const getAllTransactions = async (req, res) => {
   const status = query.status || "all";
 
   try {
-    const transactions = await getAllTransactions(userId, page, limit, status);
+    const transactions = await getTransactions(userId, page, limit, status);
     return res.status(200).json({ success: true, data: transactions });
   } catch (error) {
     console.error("Error fetching transactions:", error);
@@ -47,6 +67,6 @@ const getAllTransactions = async (req, res) => {
 };
 
 module.exports = {
-  getAllTransactions,
-  getTransaction,
+  getUserTransactions,
+  getUserTransaction,
 };

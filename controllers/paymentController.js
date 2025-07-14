@@ -4,6 +4,7 @@ const Escrow = require("../models/Escrow");
 const Wallet = require("../models/Wallet");
 const crypto = require("crypto");
 const axios = require("axios");
+const Transaction = require("../models/Transaction");
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PaystackBaseUrl = process.env.PAYSTACK_BASE_URL;
 // Joi schemas
@@ -31,13 +32,11 @@ const initiatePayment = async (req, res) => {
       escrowId,
       method
     );
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Payment made successfully",
-        paymentDetails,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Payment made successfully",
+      paymentDetails,
+    });
   } catch (error) {
     console.log(error);
     const status = error.statusCode || 500;
@@ -111,12 +110,17 @@ const updatePaymentStatus = async (req, res) => {
         break;
 
       default:
+        console.warn("Unknown metadata type:", metadata.type);
         return res.status(400).json({
           success: false,
           message: "Unknown payment type in metadata",
         });
     }
 
+    await Transaction.findOneAndUpdate(
+      { reference },
+      { $set: { status: "success" } }
+    );
     // Step 6: Respond with success
     return res.status(200).json({
       success: true,

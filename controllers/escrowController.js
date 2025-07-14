@@ -142,8 +142,8 @@ const acceptEscrow = async (req, res) => {
   } catch (err) {
     console.error("Accept Escrow Error:", err);
     return res.status(500).json({
-      message: "Error accepting escrow",
-      error: err.message || "Internal server error",
+      message: err.message || "Internal server error",
+      error: "Error accepting escrow",
     });
   }
 };
@@ -177,8 +177,8 @@ const rejectEscrow = async (req, res) => {
     console.error("Reject Escrow Error:", err);
     return res.status(500).json({
       success: false,
-      message: "Error rejecting escrow",
-      error: err.message || "Internal server error",
+      message: err.message || "Internal server error",
+      error: "Error rejecting escrow",
     });
   }
 };

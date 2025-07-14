@@ -204,6 +204,20 @@ const getAllTransactions = async (params) => {
     };
   }
 };
+const getTransactionByReference = async (reference) => {
+  try {
+    const transaction = await Transaction.findOne({ reference });
+    if (!transaction) {
+      const error = new Error("Transaction not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    return transaction;
+  } catch (error) {
+    console.error("Error fetching transaction by reference:", error);
+    throw error;
+  }
+};
 
 const getAllUsers = async (params) => {
   try {
@@ -313,6 +327,7 @@ module.exports = {
   adminGetEscrowById,
   getAllTransactions,
   getAllUsers,
+  getTransactionByReference,
   getUser,
   performUserAction,
   paymentSettingService,

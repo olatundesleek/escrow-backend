@@ -42,7 +42,7 @@ async function lockUserFunds(userId, amount) {
 async function initiateEscrowPayment(userId, escrowId, method) {
   const session = await mongoose.startSession();
   session.startTransaction();
-  console.log("payment method", method);
+
   try {
     // Load required records
     const [escrow, user, wallet, setting] = await Promise.all([
@@ -121,13 +121,12 @@ async function initiateEscrowPayment(userId, escrowId, method) {
     const paymentData = {
       reference,
       email: escrow.counterpartyEmail,
-      EscrowId: escrow._id,
+
       amount: totalAmountInKobo,
       FeeCurrency: setting.currency,
       metadata: {
-        type: "escrowPayment",
-        escrowId: escrow._id,
-        userId,
+        type: "addFunds",
+        reference: reference,
       },
     };
 

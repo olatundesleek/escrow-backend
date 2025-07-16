@@ -321,10 +321,61 @@ const paymentSettingService = async (fee, merchant, currency) => {
   }
 };
 
+const addTransaction = async (transactionData) => {
+  try {
+    const transaction = new Transaction(transactionData);
+    await transaction.save();
+    return transaction;
+  } catch (error) {
+    throw error;
+  }
+};
+const addFunds = async (amount, username) => {
+  try {
+    const user = await User.findOne({ username });
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    const userId = user._id;
+    const wallet = await Wallet.findOne({ user: userId });
+    if (!wallet) {
+      const error = new Error("Wallet not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    await wallet.deposit(amount);
+    const walletDetails = {
+      totalBalance: wallet.totalBalance,
+      lockedBalance: wallet.lockedBalance,
+      availableBalance: wallet.availableBalance, //
+    };
+    const reference = `deposit_${wallet._id}_${Date.now()}`;
+
+    const transactionData = {
+      user: userId || user._id,
+      wallet: wallet._id,
+      direction: "credit",
+      type: "wallet_deposit",
+      from: "system",
+      reference,
+      amount: amount,
+      status: "success",
+    };
+    await addTransaction(transactionData);
+    return walletDetails;
+  } catch (error) {
+    console.error("Error adding funds to wallet:", error);
+    throw error || new Error("An error occurred while adding funds");
+  }
+};
+
 module.exports = {
   getAdminDashboardData,
   getAllEscrows,
   adminGetEscrowById,
+  addFunds,
   getAllTransactions,
   getAllUsers,
   getTransactionByReference,

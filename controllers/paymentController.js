@@ -85,6 +85,10 @@ const updatePaymentStatus = async (req, res) => {
     const isSuccess = verifyRes?.data?.data?.status === "success";
 
     if (!isSuccess) {
+      await Transaction.findOneAndUpdate(
+        { reference },
+        { $set: { status: "failed" } }
+      );
       return res.status(400).json({
         success: false,
         message: "Transaction verification failed or not successful",
@@ -102,7 +106,7 @@ const updatePaymentStatus = async (req, res) => {
         });
         break;
 
-      case "addfunds":
+      case "addFunds":
         await Wallet.findOneAndUpdate(
           { userId: metadata.userId },
           { $inc: { totalBalance: amount } }

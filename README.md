@@ -16,6 +16,8 @@
   - [Dispute](#dispute)
   - [User Dashboard](#user-dashboard)
   - [Admin](#admin)
+  - [Transaction](#transaction)
+  - [Wallet](#wallet)
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
@@ -45,7 +47,8 @@ escrow-backend
 │   ├── escrowController.js
 │   ├── paymentController.js
 │   ├── profileController.js
-│   └── siteController.js
+│   ├── siteController.js
+│   └── walletController.js
 ├── routes
 │   ├── adminRoutes.js
 │   ├── authRoutes.js
@@ -53,7 +56,9 @@ escrow-backend
 │   ├── escrowRoutes.js
 │   ├── paymentRoutes.js
 │   ├── profileRoutes.js
-│   └── siteRoutes.js
+│   ├── siteRoutes.js
+│   ├── transactionRoutes.js
+│   └── walletRoutes.js
 ├── models
 │   ├── Dispute.js
 │   ├── Escrow.js
@@ -68,7 +73,8 @@ escrow-backend
 │   ├── escrowServices.js
 │   ├── paymentGateway.js
 │   ├── profileServices.js
-│   └── userServices.js
+│   ├── userServices.js
+│   └── walletServices.js
 ├── utils
 │   └── paymentGateway.js
 ├── Email
@@ -815,8 +821,8 @@ or
 - **Request Body**:
   ```json
   {
-    "escrowId": "12345",
-    "method": "wallet or paymentgateway"
+    "escrowId": "64e1a7c2f1b2a2b3c4d5e6f7",
+    "method": "wallet"
   }
   ```
 - **Response**:
@@ -1257,6 +1263,163 @@ or
       "success": false,
       "message": "Error updating payment settings",
       "error": "Error message"
+    }
+    ```
+
+---
+
+### Transaction
+
+#### Get All Transactions for User
+
+- **Endpoint**: `GET /api/transactions`
+- **Description**: Retrieve all transactions for the authenticated user.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Query Parameters**:
+  - `page` (optional): Page number (default: 1)
+  - `limit` (optional): Results per page (default: 10)
+  - `status` (optional): Filter by status (e.g., "pending", "completed", "failed", "all")
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "data": [
+        {
+          "_id": "txnId1",
+          "reference": "TXN-123456",
+          "amount": 5000,
+          "type": "payment",
+          "status": "completed",
+          "createdAt": "2024-07-16T12:00:00.000Z"
+        }
+        // ...more transactions
+      ]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Internal server error"
+    }
+    ```
+
+---
+
+#### Get Transaction by Reference
+
+- **Endpoint**: `GET /api/transaction/:reference`
+- **Description**: Retrieve a specific transaction by its reference for the authenticated user.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "transaction": {
+        "_id": "txnId1",
+        "reference": "TXN-123456",
+        "amount": 5000,
+        "type": "payment",
+        "status": "completed",
+        "createdAt": "2024-07-16T12:00:00.000Z"
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Reference is required"]
+    }
+    ```
+  - Error (401):
+    ```json
+    {
+      "message": "Unauthorized"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Internal server error"
+    }
+    ```
+
+---
+
+### Wallet
+
+#### Get Wallet Details
+
+- **Endpoint**: `GET /api/wallet`
+- **Description**: Retrieve wallet details for the authenticated user.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "statusCode": 200,
+      "success": true,
+      "walletDetails": {
+        "balance": 10000,
+        "currency": "USD",
+        "locked": 2000,
+        "available": 8000
+      },
+      "message": "Wallet details fetched successfully"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "statusCode": 500,
+      "success": false,
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
+#### Add Funds to Wallet
+
+- **Endpoint**: `PUT /api/wallet/add-funds`
+- **Description**: Add funds to the authenticated user's wallet.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "amount": 5000
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "statusCode": 200,
+      "success": true,
+      "addFundsResponse": {
+        "balance": 15000,
+        "currency": "USD"
+      },
+      "message": "Add Funds Process initiated successfully"
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "error": "\"amount\" must be a positive number"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "error": "Internal server error"
     }
     ```
 

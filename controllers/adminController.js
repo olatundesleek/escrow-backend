@@ -7,6 +7,7 @@ const {
   getAllTransactions,
   getAllUsers,
   getUser,
+  addFunds,
   getTransactionByReference,
   performUserAction,
   paymentSettingService,
@@ -51,6 +52,11 @@ const paymentSettingSchema = Joi.object({
 
 const transactionSchema = Joi.object({
   reference: Joi.string().required(),
+});
+
+const addFundsSchema = Joi.object({
+  amount: Joi.number().positive().required(),
+  username: Joi.string().alphanum().min(3).max(30).required(),
 });
 
 // Controller: Dashboard
@@ -268,6 +274,33 @@ const userAction = async (req, res) => {
   }
 };
 
+// controller to add funds to a user's wallet
+const addFundsToUserWallet = async (req, res) => {
+  const { error } = addFundsSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+
+  const { amount, username } = req.body;
+
+  try {
+    const updatedWallet = await addFunds(amount, username);
+
+    res.status(200).json({
+      success: true,
+      updatedWallet,
+      message: ` ${amount} added to ${username}'s wallet successfully`,
+    });
+  } catch (error) {
+    console.error("Error adding funds to wallet:", error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      error: "Internal server error",
+      message: error.message || "An error occurred while adding funds",
+    });
+  }
+};
+
 // Update payment settings in the database
 
 const paymentSettings = async (req, res) => {
@@ -325,4 +358,5 @@ module.exports = {
   userAction,
   paymentSettings,
   adminGetEscrowDetails,
+  addFundsToUserWallet,
 };

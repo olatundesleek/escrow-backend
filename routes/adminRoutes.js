@@ -10,6 +10,7 @@ const {
   getUserData,
   userAction,
   paymentSettings,
+  addFundsToUserWallet,
 } = require("../controllers/adminController");
 const router = express.Router();
 
@@ -33,5 +34,11 @@ router.put(
   isAdmin,
   paymentSettings
 );
-
+// Admin Route to add funds to a user's wallet
+router.put(
+  "/admin/wallet/add-funds",
+  authMiddleware,
+  isAdmin,
+  addFundsToUserWallet
+);
 module.exports = router;

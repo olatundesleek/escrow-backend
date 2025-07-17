@@ -5,17 +5,22 @@ const Wallet = require("../models/Wallet");
 const crypto = require("crypto");
 const axios = require("axios");
 const Transaction = require("../models/Transaction");
+const mongoose = require("mongoose");
+
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PaystackBaseUrl = process.env.PAYSTACK_BASE_URL;
+
 // Joi schemas
 const initiatePaymentSchema = Joi.object({
   escrowId: Joi.string().required(),
   method: Joi.string().valid("paymentgateway", "wallet").required(),
 });
+
 const confirmPaymentSchema = Joi.object({
   reference: Joi.string().min(10).required(),
 });
-// Function to initiate a payment
+
+// Initiate Payment
 const initiatePayment = async (req, res) => {
   const { error } = initiatePaymentSchema.validate(req.body);
   if (error) {
@@ -27,11 +32,13 @@ const initiatePayment = async (req, res) => {
   try {
     const { escrowId, method } = req.body;
     const userId = req.userId;
+
     const paymentDetails = await paymentservice.initiateEscrowPayment(
       userId,
       escrowId,
       method
     );
+
     res.status(200).json({
       success: true,
       message: "Payment made successfully",
@@ -44,11 +51,12 @@ const initiatePayment = async (req, res) => {
   }
 };
 
-// Function to update payment status from webhook
-
+// Update Payment Status via Webhook
 const updatePaymentStatus = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    // Step 1: Convert raw body to string for signature verification
     const rawBody = req.body.toString("utf8");
     const receivedSignature = req.headers["x-paystack-signature"];
 
@@ -56,18 +64,19 @@ const updatePaymentStatus = async (req, res) => {
       .createHmac("sha512", PAYSTACK_SECRET_KEY)
       .update(rawBody)
       .digest("hex");
-    console.log("Body is buffer:", Buffer.isBuffer(req.body)); // Should be true
 
     if (generatedHash !== receivedSignature) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(401).send("Unauthorized");
     }
 
-    // Step 2: Parse the raw JSON body
     const event = JSON.parse(rawBody);
-
-    // Step 3: Basic payload validation
     const { data } = event;
+
     if (!data || !data.metadata || !data.reference) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         success: false,
         message: "Invalid webhook payload structure",
@@ -76,45 +85,52 @@ const updatePaymentStatus = async (req, res) => {
 
     const { reference, metadata } = data;
 
-    // Step 4: Verify transaction status with Paystack
     const verifyUrl = `${PaystackBaseUrl}/transaction/verify/${reference}`;
     const verifyRes = await axios.get(verifyUrl, {
       headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
     });
 
     const isSuccess = verifyRes?.data?.data?.status === "success";
+    const amount = verifyRes?.data?.data?.amount / 100;
 
     if (!isSuccess) {
       await Transaction.findOneAndUpdate(
         { reference },
-        { $set: { status: "failed" } }
+        { $set: { status: "failed" } },
+        { session }
       );
+      await session.commitTransaction();
+      session.endSession();
       return res.status(400).json({
         success: false,
         message: "Transaction verification failed or not successful",
       });
     }
 
-    const amount = verifyRes.data.data.amount / 100;
-    console.log(metadata.type, "metadata type");
-    // Step 5: Update payment record based on metadata
+    // Handle payment metadata types
     switch (metadata.type) {
       case "escrowPayment":
-        await Escrow.findByIdAndUpdate(metadata.escrowId, {
-          paymentStatus: "paid",
-          paidWith: "paymentgateway",
-        });
+        await Escrow.findByIdAndUpdate(
+          metadata.escrowId,
+          {
+            paymentStatus: "paid",
+            paidWith: "paymentgateway",
+          },
+          { session }
+        );
         break;
 
       case "addFunds":
         await Wallet.findOneAndUpdate(
           { userId: metadata.userId },
-          { $inc: { totalBalance: amount } }
+          { $inc: { totalBalance: amount } },
+          { session }
         );
         break;
 
       default:
-        console.warn("Unknown metadata type:", metadata.type);
+        await session.abortTransaction();
+        session.endSession();
         return res.status(400).json({
           success: false,
           message: "Unknown payment type in metadata",
@@ -123,14 +139,20 @@ const updatePaymentStatus = async (req, res) => {
 
     await Transaction.findOneAndUpdate(
       { reference },
-      { $set: { status: "success" } }
+      { $set: { status: "success" } },
+      { session }
     );
-    // Step 6: Respond with success
+
+    await session.commitTransaction();
+    session.endSession();
+
     return res.status(200).json({
       success: true,
       message: "Payment status updated successfully",
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("🔥 Webhook Error:", error);
     return res.status(500).json({
       success: false,
@@ -140,7 +162,7 @@ const updatePaymentStatus = async (req, res) => {
   }
 };
 
-// Function to confirm a payment
+// Confirm Payment
 const confirmPayment = async (req, res) => {
   const { error } = confirmPaymentSchema.validate(req.params);
   if (error) {
@@ -148,10 +170,11 @@ const confirmPayment = async (req, res) => {
       .status(400)
       .json({ success: false, message: error.details[0].message });
   }
+
   try {
     const reference = req.params.reference;
-
     const confirmation = await paymentservice.confirmPayment(reference);
+
     res.status(200).json({ success: true, confirmation });
   } catch (error) {
     const status = error.statusCode || 500;
@@ -162,4 +185,8 @@ const confirmPayment = async (req, res) => {
   }
 };
 
-module.exports = { initiatePayment, confirmPayment, updatePaymentStatus };
+module.exports = {
+  initiatePayment,
+  confirmPayment,
+  updatePaymentStatus,
+};

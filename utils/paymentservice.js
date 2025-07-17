@@ -29,7 +29,7 @@ async function lockUserFunds(userId, amount) {
       error.statusCode = 404;
       throw error;
     }
-
+    console.log("Locking funds in wallet:", wallet._id);
     // Call the method you defined
     await wallet.lockFunds(amount);
 
@@ -125,8 +125,9 @@ async function initiateEscrowPayment(userId, escrowId, method) {
       amount: totalAmountInKobo,
       FeeCurrency: setting.currency,
       metadata: {
-        type: "addFunds",
+        type: "escrowPayment",
         reference: reference,
+        escrowId: escrow._id,
       },
     };
 
@@ -175,6 +176,7 @@ async function initiateEscrowPayment(userId, escrowId, method) {
       }
     } else if (method === "wallet") {
       try {
+        console.log(totalAmount, "Total Amount to lock");
         payment = await lockUserFunds(userId, totalAmount);
         transaction.status = "success";
 

@@ -125,8 +125,9 @@ async function initiateEscrowPayment(userId, escrowId, method) {
       amount: totalAmountInKobo,
       FeeCurrency: setting.currency,
       metadata: {
-        type: "addFunds",
+        type: "escrowPayment",
         reference: reference,
+        escrowId: escrow._id,
       },
     };
 

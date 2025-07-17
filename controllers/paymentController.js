@@ -125,6 +125,7 @@ const updatePaymentStatus = async (req, res) => {
       { reference },
       { $set: { status: "success" } }
     );
+
     // Step 6: Respond with success
     return res.status(200).json({
       success: true,

@@ -442,8 +442,8 @@ const changePassword = async (req, res) => {
   }
 
   const { currentPassword, newPassword } = req.body;
-  const userId = req.user.id;
-
+  const userId = req.userId;
+  console.log("User ID:", userId);
   try {
     const user = await User.findById(userId);
     if (!user) {

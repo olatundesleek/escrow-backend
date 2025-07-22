@@ -9,7 +9,7 @@ const {
   changePassword,
   confirmResetToken,
 } = require("../controllers/authController");
-
+const { authMiddleware } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 //Route for user registration
@@ -23,7 +23,7 @@ router.post("/logout", logout);
 router.post("/reset-password", resetPassword);
 
 // change password
-router.post("/change-password", changePassword);
+router.post("/change-password", authMiddleware, changePassword);
 
 // Route for resending email verification
 router.post("/send-verification-email", resendVerificationEmail);

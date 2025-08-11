@@ -276,6 +276,7 @@ Ensure the following environment variables are set in your `.env` file:
     "lastname": "Doe",
     "username": "johndoe",
     "email": "johndoe@example.com",
+    "phone": "+234647367637",
     "password": "password123"
   }
   ```

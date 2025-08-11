@@ -16,6 +16,7 @@ const registerSchema = Joi.object({
   lastname: Joi.string().min(3).max(30).required(),
   username: Joi.string().min(3).max(30).required(),
   email: Joi.string().email().required(),
+  phone: Joi.string().min(11).max(15).required(),
   password: Joi.string().min(6).required(),
 });
 
@@ -196,7 +197,7 @@ const register = async (req, res) => {
     });
   }
 
-  const { firstname, lastname, username, email, password } = req.body;
+  const { firstname, lastname, username, email, phone, password } = req.body;
 
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -222,6 +223,7 @@ const register = async (req, res) => {
       lastname,
       username,
       email,
+      phone,
       password: hashedPassword,
     });
 

@@ -121,11 +121,16 @@ const updatePaymentStatus = async (req, res) => {
         break;
 
       case "addFunds":
+        console.log("trying to update wallet balance");
+        console.log("metadata.userId", metadata.userId);
+        console.log("amount", amount);
+        console.log("metadata type", metadata.type);
         await Wallet.findOneAndUpdate(
-          { userId: metadata.userId },
+          { user: metadata.userId },
           { $inc: { totalBalance: amount } },
           { session }
         );
+        console.log("Wallet balance updated successfully");
         break;
 
       default:

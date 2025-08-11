@@ -27,8 +27,6 @@ const walletSchema = new mongoose.Schema(
   {
     timestamps: true,
     minimize: false,
-  },
-  {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }

@@ -88,13 +88,22 @@ const getEscrows = async (req, res) => {
   const userId = req.userId;
 
   try {
-    const escrows = await getAllEscrows(userId, {
-      page: req.query.page || 1,
-      limit: req.query.limit || 10,
-      status: req.query.status || "all",
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const status = req.query.status || "all";
+
+    // Delegate logic to service
+    const { data, total, totalPages } = await getAllEscrows(userId, {
+      page,
+      limit,
+      status,
     });
-    if (!escrows || escrows.length === 0) {
+
+    console.log({ page, limit, status });
+
+    if (!data || data.length === 0) {
       return res.status(404).json({
+        success: false,
         message: "No escrows found for this user",
       });
     }
@@ -102,14 +111,20 @@ const getEscrows = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Escrows retrieved successfully",
-      escrows,
+      escrows: data,
+      pagination: {
+        total,
+        totalPages,
+        currentPage: page,
+        pageSize: limit,
+      },
     });
   } catch (err) {
     console.error("Get Escrows Error:", err);
     return res.status(500).json({
       success: false,
-      message: "Error retrieving escrows",
-      error: err.message || "Internal server error",
+      message: err.message || "Internal server error",
+      error: "Error retrieving escrows",
     });
   }
 };

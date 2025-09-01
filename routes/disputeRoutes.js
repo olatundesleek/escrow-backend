@@ -1,18 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const disputeController = require('../controllers/disputeController');
-const authMiddleware = require('../middleware/authMiddleware');
+const {
+  createDispute,
+  closeDispute,
+  getAllDisputes,
+} = require("../controllers/disputeController");
 
-// Route to file a dispute
-router.post('/file', authMiddleware.verifyToken, disputeController.fileDispute);
+const { authMiddleware } = require("../middleware/authMiddleware");
+
+// Route to create a new dispute
+router.post("/dispute-create", authMiddleware, createDispute);
+
+// Route to close a dispute
+router.post("/dispute-close", authMiddleware, closeDispute);
 
 // Route to get all disputes for a user
-router.get('/', authMiddleware.verifyToken, disputeController.getUserDisputes);
-
-// Route to resolve a dispute
-router.put('/resolve/:id', authMiddleware.verifyToken, disputeController.resolveDispute);
-
-// Route to get dispute details
-router.get('/:id', authMiddleware.verifyToken, disputeController.getDisputeDetails);
-
+router.get("/disputes", authMiddleware, getAllDisputes);
 module.exports = router;

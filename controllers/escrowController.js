@@ -78,8 +78,8 @@ const createEscrow = async (req, res) => {
   } catch (err) {
     console.error("Create Escrow Error:", err);
     return res.status(500).json({
-      message: "Error creating escrow",
-      error: err.message || "Internal server error",
+      error: "Error creating escrow",
+      message: err.message || "Internal server error",
     });
   }
 };

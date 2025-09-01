@@ -1,4 +1,7 @@
 const Joi = require("joi");
+const cloudinary = require("../config/cloudinary");
+const { upload } = require("../middleware/upload");
+const { Readable } = require("stream");
 const {
   getUserById,
   updateUser,
@@ -10,9 +13,14 @@ const {
 
 // Validation schemas
 const updateProfileSchema = Joi.object({
-  name: Joi.string().optional(),
-  email: Joi.string().email().optional(),
+  profilePicture: Joi.string().optional(),
   phone: Joi.string().optional(),
+  street: Joi.string().optional(),
+  city: Joi.string().optional(),
+  state: Joi.string().optional(),
+  zip: Joi.string().optional(),
+  country: Joi.string().optional(),
+  postalCode: Joi.string().optional(),
 });
 
 const changePasswordSchema = Joi.object({
@@ -35,13 +43,11 @@ async function getProfileDetails(req, res) {
       user,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error fetching profile details",
-        error,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching profile details",
+      error,
+    });
   }
 }
 
@@ -80,23 +86,60 @@ async function getDashboardDetails(req, res) {
 }
 
 // Update profile
-async function updateProfile(req, res) {
+function uploadToCloudinary(buffer, username) {
+  console.log("Uploading to Cloudinary...");
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "escrow_site/profile_pictures",
+        public_id: `profile_picture/${username}`,
+        allowed_formats: ["jpg", "jpeg", "png"],
+        overwrite: true,
+        transformation: [{ width: 500, height: 500 }, { quality: "auto" }],
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+
+    const readable = Readable.from(buffer);
+    readable.pipe(stream);
+  });
+}
+
+const updateProfile = async (req, res) => {
+  console.log("Updating profile...", req.body);
   try {
+    if (req.file) {
+      console.log("file is here...");
+      const uploadResult = await uploadToCloudinary(
+        req.file.buffer,
+        req.username
+      );
+      req.body.profilePicture = uploadResult.secure_url;
+    }
+
     const { error } = updateProfileSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const userId = req.user.id;
-    const updatedData = req.body;
-    const updatedUser = await updateUser(userId, updatedData);
-    res
-      .status(200)
-      .json({ message: "Profile updated successfully", user: updatedUser });
+    const updatedUser = await updateUser(req.userId, req.body);
+
+    if (!updatedUser.success) {
+      return res.status(404).json({ message: updatedUser.message });
+    }
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      data: updatedUser.data, // <-- unwrap properly
+    });
   } catch (error) {
     res.status(500).json({ message: "Error updating profile", error });
   }
-}
+};
 
 // Change password
 async function changePassword(req, res) {
@@ -106,7 +149,7 @@ async function changePassword(req, res) {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const userId = req.user.id;
+    const userId = req.userId;
     const { oldPassword, newPassword } = req.body;
     const result = await changeUserPassword(userId, oldPassword, newPassword);
     if (!result) {

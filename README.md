@@ -630,7 +630,6 @@ Ensure the following environment variables are set in your `.env` file:
 #### Create a New Escrow
 
 - **Endpoint**: `POST /api/escrow`
-- **Description**: Create a new escrow transaction.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Request Body**:
@@ -655,15 +654,26 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (400/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "error": "Error creating escrow",
+      "message": "Internal server error"
+    }
+    ```
 
 ---
 
 #### Get All Escrows for User
 
-- **Endpoint**: `GET /api/escrow`
-- **Description**: Retrieve all escrows associated with the authenticated user.
+- **Endpoint**: `GET /api/escrows`
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Query Parameters**:
@@ -681,15 +691,26 @@ Ensure the following environment variables are set in your `.env` file:
       ]
     }
     ```
-  - Error (404/500):  
-    See error format below.
+  - Error (404):
+    ```json
+    {
+      "message": "No escrows found for this user"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error retrieving escrows",
+      "error": "Internal server error"
+    }
+    ```
 
 ---
 
 #### Get Escrow Details
 
 - **Endpoint**: `GET /api/escrow/:id`
-- **Description**: Retrieve details of a specific escrow by its ID.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Response**:
@@ -702,15 +723,26 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (400/404/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error retrieving escrow details",
+      "error": "Internal server error"
+    }
+    ```
 
 ---
 
 #### Update an Escrow
 
 - **Endpoint**: `PUT /api/escrow/:id`
-- **Description**: Update an existing escrow transaction.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Request Body**:
@@ -730,15 +762,32 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (400/404/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "message": "Escrow not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error updating escrow",
+      "error": "Internal server error"
+    }
+    ```
 
 ---
 
 #### Accept an Escrow
 
 - **Endpoint**: `POST /api/acceptescrow`
-- **Description**: Accept an escrow invitation as the counterparty.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Request Body**:
@@ -757,15 +806,26 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (400/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error accepting escrow",
+      "error": "Internal server error"
+    }
+    ```
 
 ---
 
 #### Reject an Escrow
 
 - **Endpoint**: `POST /api/rejectescrow`
-- **Description**: Reject an escrow invitation as the counterparty.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Request Body**:
@@ -785,163 +845,101 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (400/500):  
-    See error format below.
-
----
-
-**Error Format Example**:
-
-```json
-{
-  "message": "Validation error",
-  "details": ["Error details here"]
-}
-```
-
-or
-
-```json
-{
-  "success": false,
-  "message": "Error message",
-  "error": "Internal server error"
-}
-```
-
----
-
-### Payment
-
-#### Initiate a Payment
-
-- **Endpoint**: `POST /api/pay`
-- **Description**: Initiate a payment for an escrow.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Request Body**:
-  ```json
-  {
-    "escrowId": "64e1a7c2f1b2a2b3c4d5e6f7",
-    "method": "wallet"
-  }
-  ```
-- **Response**:
-  - Success (200):
+  - Error (400):
     ```json
     {
-      "success": true,
-      "paymentDetails": {
-        /* payment details */
-      }
-    }
-    ```
-  - Error (400/500):
-    ```json
-    {
-      "success": false,
-      "message": "Validation error" // or error message
-    }
-    ```
-
----
-
-#### Confirm a Payment
-
-- **Endpoint**: `GET /api/confirm-payment/:reference`
-- **Description**: Confirm a payment using the payment reference.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "confirmation": { "status": "success" }
+      "message": "Validation error",
+      "details": ["Error details here"]
     }
     ```
   - Error (500):
     ```json
-    { "success": false, "message": "Internal server error" }
+    {
+      "success": false,
+      "message": "Error rejecting escrow",
+      "error": "Internal server error"
+    }
     ```
 
 ---
 
 ### Dispute
 
-#### File a Dispute
+#### Create a Dispute
 
-- **Endpoint**: `POST /api/dispute/file`
+- **Endpoint**: `POST /api/dispute-create`
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
     "escrowId": "12345",
-    "reason": "The terms of the agreement were not fulfilled"
+    "reason": "The terms of the agreement were not fulfilled",
+    "files": "https://example.com/evidence.jpg"
   }
   ```
 - **Response**:
   - Success (201):
     ```json
     {
-      "message": "Dispute filed successfully",
+      "success": true,
+      "message": "Dispute created successfully",
       "dispute": {
-        "id": "dispute123",
-        "status": "Pending"
+        /* dispute object */
       }
     }
     ```
-  - Error (400/500):
+  - Error (400):
     ```json
     {
-      "message": "Validation error or Internal server error"
+      "success": false,
+      "message": "Validation error"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "error": "Error creating dispute",
+      "message": "Internal server error"
     }
     ```
 
-#### Get Dispute Details
+---
 
-- **Endpoint**: `GET /api/dispute/:id`
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "dispute": {
-        "id": "dispute123",
-        "status": "Pending",
-        "reason": "The terms of the agreement were not fulfilled"
-      }
-    }
-    ```
-  - Error (404/500):
-    ```json
-    {
-      "message": "Dispute not found or Internal server error"
-    }
-    ```
+#### Close a Dispute
 
-#### Resolve a Dispute
-
-- **Endpoint**: `PUT /api/dispute/resolve/:id`
+- **Endpoint**: `POST /api/dispute-close`
+- **Headers**:  
+  `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
-    "resolution": "Refund issued to buyer"
+    "disputeId": "dispute123"
   }
   ```
 - **Response**:
-  - Success (200):
+  - Not implemented yet:
     ```json
     {
-      "message": "Dispute resolved successfully",
-      "dispute": {
-        "id": "dispute123",
-        "status": "Resolved"
-      }
+      "success": false,
+      "message": "Not implemented yet"
     }
     ```
-  - Error (404/500):
+
+---
+
+#### Get All Disputes for a User
+
+- **Endpoint**: `GET /api/disputes`
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Not implemented yet:
     ```json
     {
-      "message": "Dispute not found or Internal server error"
+      "success": false,
+      "message": "Not implemented yet"
     }
     ```
 

@@ -15,6 +15,9 @@ const disputeSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  files: {
+    type: [String], // Array of file URLs or paths
+  },
   status: {
     type: String,
     enum: ["open", "resolved", "closed"],

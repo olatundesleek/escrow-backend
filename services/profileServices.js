@@ -60,16 +60,30 @@ async function getUserById(userId) {
 // Update user profile
 async function updateUser(userId, updatedData) {
   try {
-    const updatedUser = await User.findByIdAndUpdate(userId, updatedData, {
-      new: true,
-      runValidators: true,
-    }).select("-password -role");
+    const addressFields = ["street", "city", "state", "postalCode", "country"];
+    const updatePayload = {};
 
-    if (!updatedUser) {
+    for (const [key, value] of Object.entries(updatedData)) {
+      if (value === null || value === undefined || value === "") continue;
+
+      if (addressFields.includes(key)) {
+        updatePayload[`address.${key}`] = value; // put inside address
+      } else {
+        updatePayload[key] = value; // keep top-level
+      }
+    }
+
+    const update = await User.findByIdAndUpdate(
+      userId,
+      { $set: updatePayload },
+      { new: true, runValidators: true }
+    ).select("-password -role");
+
+    if (!update) {
       return { success: false, message: "User not found or update failed" };
     }
 
-    return { success: true, data: updatedUser };
+    return { success: true, data: update };
   } catch (error) {
     return { success: false, message: "Failed to update user profile" };
   }

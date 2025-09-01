@@ -345,7 +345,7 @@ const login = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Failed to log in",
+      message: error.message,
     });
   }
 };

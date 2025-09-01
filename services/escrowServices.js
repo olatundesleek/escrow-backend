@@ -310,40 +310,36 @@ async function getAllEscrows(userId, { page, limit, status }) {
 
     const userEmail = user.email.toLowerCase();
 
-    const userEscrows = await Escrow.find({
+    // Build filter
+    const filter = {
       $or: [{ creatorEmail: userEmail }, { counterpartyEmail: userEmail }],
-    })
-      .sort({ createdAt: -1 }) // Sort by creation date, most recent first
-      .skip((page - 1) * limit) // Pagination: skip to the correct page
-      .limit(limit); // Limit the number of results per page
-
-    if (!userEscrows) throw new Error("Escrows not found");
-
-    // Filter escrows by status (if provided)
-    let escrows = userEscrows;
-
+    };
     if (status !== "all") {
-      escrows = escrows.filter((escrow) => escrow.status === status);
+      filter.status = status;
     }
 
-    // Pagination on escrows
-    const totalEscrows = escrows.length;
-    const paginatedEscrows = escrows.slice((page - 1) * limit, page * limit);
+    // Count total escrows BEFORE pagination
+    const totalEscrows = await Escrow.countDocuments(filter);
 
-    //im Converting each escrow to plain object and remove 'counterpartyEmail and creator email for privacy'
-    const escrowObj = paginatedEscrows.map((escrow) => {
-      const escrowPlainObj = escrow.toObject(); // Convert each escrow to plain object
-      delete escrowPlainObj.counterpartyEmail; // Remove the counterpartyEmail
-      delete escrowPlainObj.creatorEmail; // Remove the creatorEmail
-      return escrowPlainObj; // Return the modified escrow
+    // Get paginated escrows
+    const userEscrows = await Escrow.find(filter)
+      .sort({ createdAt: -1 }) // Newest first
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    // Convert to plain objects & strip sensitive fields
+    const escrowObj = userEscrows.map((escrow) => {
+      const escrowPlainObj = escrow.toObject();
+      delete escrowPlainObj.counterpartyEmail;
+      delete escrowPlainObj.creatorEmail;
+      return escrowPlainObj;
     });
-
-    // Return paginated and filtered escrows
 
     return {
       total: totalEscrows,
       page,
       limit,
+      totalPages: Math.ceil(totalEscrows / limit),
       data: escrowObj,
     };
   } catch (error) {

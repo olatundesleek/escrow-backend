@@ -55,6 +55,12 @@ async function createNewEscrow(
       terms,
       status: "pending",
     });
+    if (creatorRole === "buyer") {
+      escrow.buyerUsername = user.username;
+    }
+    if (creatorRole === "seller") {
+      escrow.sellerUsername = user.username;
+    }
 
     await escrow.save({ session });
 
@@ -132,6 +138,13 @@ async function acceptNewEscrow(userId, escrowId) {
     }
 
     const oppositeRole = escrow.creatorRole === "buyer" ? "seller" : "buyer";
+
+    if (oppositeRole == "buyer") {
+      escrow.buyerUsername = user.username;
+    }
+    if (oppositeRole == "seller") {
+      escrow.sellerUsername = user.username;
+    }
 
     escrow.counterparty = userId;
     escrow[escrow.creatorRole] = escrow.creator;

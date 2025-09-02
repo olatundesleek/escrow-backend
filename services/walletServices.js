@@ -87,6 +87,7 @@ const addFundsToWallet = async (userId, amount) => {
       direction: "credit",
       type: "wallet_deposit",
       from: "system",
+      to: user.username,
       reference,
       amount: amount,
       gateway: setting.merchant,

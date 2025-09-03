@@ -62,7 +62,13 @@ async function getUserById(userId) {
 // Update user profile
 async function updateUser(userId, updatedData) {
   try {
-    const addressFields = ["street", "city", "state", "postalCode", "country"];
+    const addressFields = [
+      "streetAddress",
+      "city",
+      "state",
+      "postalCode",
+      "country",
+    ];
     const updatePayload = {};
 
     for (const [key, value] of Object.entries(updatedData)) {

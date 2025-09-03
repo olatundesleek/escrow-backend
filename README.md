@@ -18,6 +18,7 @@
   - [Admin](#admin)
   - [Transaction](#transaction)
   - [Wallet](#wallet)
+  - [Profile](#profile)
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgments](#acknowledgments)
@@ -26,14 +27,18 @@
 
 ## Overview
 
-The Escrow App is a web application designed to facilitate secure transactions between parties using an escrow service. It provides functionalities for user authentication, escrow management, payment processing, and dispute resolution.
+The Escrow App is a robust web application designed to facilitate secure transactions between parties using an escrow service. It provides comprehensive features for user authentication, escrow management, payment processing, dispute resolution, wallet management, and admin controls. The platform supports two-factor authentication (2FA) for enhanced security and offers a user dashboard for tracking all activities.
 
 ## Features
 
-- **User Authentication**: Registration, login, email verification, and logout.
-- **Escrow Management**: Create, update, retrieve, and accept escrow transactions.
-- **Payment Processing**: Initiate payments, confirm transactions, and check payment statuses.
-- **Dispute Management**: File and resolve disputes for escrow transactions.
+- **User Authentication**: Registration, login, email verification, password reset, and logout.
+- **Escrow Management**: Create, update, retrieve, accept, and reject escrow transactions.
+- **Payment Processing**: Initiate payments, confirm transactions, and handle payment status via webhooks.
+- **Dispute Management**: File, resolve, and close disputes for escrow transactions.
+- **Wallet Management**: View wallet balance and add funds.
+- **Transaction Tracking**: View all transactions and details by reference.
+- **User Dashboard**: Overview of user activity, escrows, transactions, disputes, and wallet.
+- **Admin Controls**: Manage users, escrows, transactions, payment settings, and dashboard analytics.
 - **Two-Factor Authentication (2FA)**: Enable 2FA for enhanced account security.
 
 ## Directory Structure
@@ -58,7 +63,8 @@ escrow-backend
 │   ├── profileRoutes.js
 │   ├── siteRoutes.js
 │   ├── transactionRoutes.js
-│   └── walletRoutes.js
+│   ├── walletRoutes.js
+│   └── webhookRoutes.js
 ├── models
 │   ├── Dispute.js
 │   ├── Escrow.js
@@ -67,7 +73,8 @@ escrow-backend
 │   ├── User.js
 │   └── Wallet.js
 ├── middleware
-│   └── authMiddleware.js
+│   ├── authMiddleware.js
+│   └── upload.js
 ├── services
 │   ├── adminServices.js
 │   ├── escrowServices.js
@@ -81,6 +88,8 @@ escrow-backend
 │   ├── email.js
 │   └── templates
 │       └── userregisteration.js
+├── config
+│   └── cloudinary.js
 ├── app.js
 ├── server.js
 └── README.md
@@ -1379,6 +1388,136 @@ Ensure the following environment variables are set in your `.env` file:
   - Error (500):
     ```json
     {
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
+### Profile
+
+#### Get Profile Details
+
+- **Endpoint**: `GET /api/profile`
+- **Description**: Retrieve the authenticated user's profile details.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Profile details fetched successfully",
+      "user": {
+        "_id": "userId",
+        "firstname": "John",
+        "lastname": "Doe",
+        "username": "johndoe",
+        "email": "johndoe@example.com",
+        "profilePicture": "https://cloudinary.com/image.jpg",
+        "phone": "+1234567890",
+        "streetAddress": "123 Main St",
+        "city": "Lagos",
+        "state": "Lagos",
+        "zip": "100001",
+        "country": "Nigeria",
+        "postalCode": "100001"
+      }
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error fetching profile details",
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
+#### Update Profile
+
+- **Endpoint**: `PUT /api/profile`
+- **Description**: Update the authenticated user's profile details. Supports profile picture upload.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body** (as JSON or multipart/form-data for profilePicture):
+  ```json
+  {
+    "profilePicture": "https://cloudinary.com/image.jpg",
+    "phone": "+1234567890",
+    "streetAddress": "123 Main St",
+    "city": "Lagos",
+    "state": "Lagos",
+    "zip": "100001",
+    "country": "Nigeria",
+    "postalCode": "100001"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Profile updated successfully",
+      "data": {
+        "_id": "userId",
+        "firstname": "John",
+        "lastname": "Doe",
+        "username": "johndoe",
+        "email": "johndoe@example.com",
+        "profilePicture": "https://cloudinary.com/image.jpg",
+        "phone": "+1234567890",
+        "streetAddress": "123 Main St",
+        "city": "Lagos",
+        "state": "Lagos",
+        "zip": "100001",
+        "country": "Nigeria",
+        "postalCode": "100001"
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error"
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "message": "User not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error updating profile",
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
+#### Check Authentication
+
+- **Endpoint**: `GET /api/me`
+- **Description**: Confirm if a user is authenticated.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "User is authenticated",
+      "authenticated": true
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error checking authentication",
       "error": "Internal server error"
     }
     ```

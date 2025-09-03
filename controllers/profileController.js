@@ -15,7 +15,7 @@ const {
 const updateProfileSchema = Joi.object({
   profilePicture: Joi.string().optional(),
   phone: Joi.string().optional(),
-  street: Joi.string().optional(),
+  streetAddress: Joi.string().optional(),
   city: Joi.string().optional(),
   state: Joi.string().optional(),
   zip: Joi.string().optional(),

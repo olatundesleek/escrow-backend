@@ -14,28 +14,18 @@ const { signInToken } = require("../utils/jwt");
 const registerSchema = Joi.object({
   firstname: Joi.string().min(3).max(30).required(),
   lastname: Joi.string().min(3).max(30).required(),
-  username: Joi.string()
-    .min(3)
-    .max(30)
-    .pattern(/^\S+$/) // No spaces allowed
-    .required()
-    .messages({
-      "string.pattern.base": "Username cannot contain spaces",
-    }),
+  username: Joi.string().min(3).max(30).pattern(/^\S+$/).required().messages({
+    "string.pattern.base": "Username must not contain spaces",
+  }),
   email: Joi.string().email().required(),
   phone: Joi.string().min(11).max(15).required(),
   password: Joi.string().min(6).required(),
 });
 
 const loginSchema = Joi.object({
-  username: Joi.string()
-    .min(3)
-    .max(30)
-    .pattern(/^\S+$/) // No spaces allowed
-    .required()
-    .messages({
-      "string.pattern.base": "Username cannot contain spaces",
-    }),
+  username: Joi.string().min(3).max(30).pattern(/^\S+$/).required().messages({
+    "string.pattern.base": "Username must not contain spaces",
+  }),
   password: Joi.string().required(),
   rememberme: Joi.boolean().optional(),
 });
@@ -206,8 +196,8 @@ const register = async (req, res) => {
   if (error) {
     return res.status(400).json({
       success: false,
-      message: "Validation error",
-      details: error.details.map((d) => d.message),
+      details: "Validation error",
+      message: error.details.map((d) => d.message),
     });
   }
 
@@ -279,8 +269,8 @@ const login = async (req, res) => {
   if (error) {
     return res.status(400).json({
       success: false,
-      message: "Validation error",
-      details: error.details.map((d) => d.message),
+      details: "Validation error",
+      message: error.details.map((d) => d.message),
     });
   }
 

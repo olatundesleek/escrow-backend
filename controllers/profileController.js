@@ -92,7 +92,7 @@ function uploadToCloudinary(buffer, username) {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: "escrow_site/profile_pictures",
-        public_id: `profile_picture/${username}`,
+        public_id: `${username}`,
         allowed_formats: ["jpg", "jpeg", "png"],
         overwrite: true,
         transformation: [{ width: 500, height: 500 }, { quality: "auto" }],
@@ -110,10 +110,8 @@ function uploadToCloudinary(buffer, username) {
 }
 
 const updateProfile = async (req, res) => {
-  console.log("Updating profile...", req.body);
   try {
     if (req.file) {
-      console.log("file is here...");
       const uploadResult = await uploadToCloudinary(
         req.file.buffer,
         req.username

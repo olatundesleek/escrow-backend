@@ -14,14 +14,28 @@ const { signInToken } = require("../utils/jwt");
 const registerSchema = Joi.object({
   firstname: Joi.string().min(3).max(30).required(),
   lastname: Joi.string().min(3).max(30).required(),
-  username: Joi.string().min(3).max(30).required(),
+  username: Joi.string()
+    .min(3)
+    .max(30)
+    .pattern(/^\S+$/) // No spaces allowed
+    .required()
+    .messages({
+      "string.pattern.base": "Username cannot contain spaces",
+    }),
   email: Joi.string().email().required(),
   phone: Joi.string().min(11).max(15).required(),
   password: Joi.string().min(6).required(),
 });
 
 const loginSchema = Joi.object({
-  username: Joi.string().required(),
+  username: Joi.string()
+    .min(3)
+    .max(30)
+    .pattern(/^\S+$/) // No spaces allowed
+    .required()
+    .messages({
+      "string.pattern.base": "Username cannot contain spaces",
+    }),
   password: Joi.string().required(),
   rememberme: Joi.boolean().optional(),
 });

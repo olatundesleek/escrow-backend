@@ -23,6 +23,16 @@ const disputeSchema = new mongoose.Schema({
     enum: ["open", "resolved", "closed"],
     default: "open",
   },
+  complainant: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  complainee: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

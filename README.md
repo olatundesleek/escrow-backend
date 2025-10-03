@@ -183,9 +183,10 @@ Ensure the following environment variables are set in your `.env` file:
 #### Update Site Settings
 
 - **Endpoint**: `PUT /api/settings`
+- **Description**: Update the site settings. Requires admin authentication.
 - **Headers**:  
   `Authorization: Bearer <token>`
-- **Request Body**:
+- **Request Body**: (as JSON or multipart/form-data for logo upload)
   ```json
   {
     "siteName": "New Escrow App",
@@ -221,12 +222,22 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (400/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    { "message": "Validation error: [specific validation error message]" }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error updating site settings",
+      "error": "Internal server error"
+    }
+    ```
 
 #### Enable Maintenance Mode
 
 - **Endpoint**: `PUT /api/settings/maintenance`
+- **Description**: Enable or disable maintenance mode for the site. Requires admin authentication.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Request Body**:
@@ -247,8 +258,17 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (404/500):  
-    See error format below.
+  - Error (404):
+    ```json
+    { "message": "Site settings not found" }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error updating maintenance mode",
+      "error": "Internal server error"
+    }
+    ```
 
 ---
 
@@ -257,6 +277,7 @@ Ensure the following environment variables are set in your `.env` file:
 #### Register a New User
 
 - **Endpoint**: `POST /api/auth/register`
+- **Description**: Register a new user.
 - **Request Body**:
   ```json
   {
@@ -276,12 +297,28 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "User registered successfully. Verification email sent."
     }
     ```
-  - Error (400/409):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (409):
+    ```json
+    {
+      "success": false,
+      "message": "Email or username already in use"
+    }
+    ```
+
+---
 
 #### Login a User
 
 - **Endpoint**: `POST /api/auth/login`
+- **Description**: Log in an existing user.
 - **Request Body**:
   ```json
   {
@@ -298,12 +335,35 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Login successful"
     }
     ```
-  - Error (400/404/403):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "Invalid credentials"
+    }
+    ```
+  - Error (403):
+    ```json
+    {
+      "success": false,
+      "message": "Account is not active. Please verify your email."
+    }
+    ```
+
+---
 
 #### Logout a User
 
 - **Endpoint**: `POST /api/auth/logout`
+- **Description**: Log out the currently authenticated user.
 - **Response**:
   - Success (200):
     ```json
@@ -313,9 +373,12 @@ Ensure the following environment variables are set in your `.env` file:
     }
     ```
 
+---
+
 #### Verify Email
 
 - **Endpoint**: `GET /api/auth/verify-email/:token`
+- **Description**: Verify a user's email using a token.
 - **Response**:
   - Success (200):
     ```json
@@ -324,12 +387,27 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Email verified successfully"
     }
     ```
-  - Error (400/404):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Invalid or expired verification token"
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "User not found"
+    }
+    ```
+
+---
 
 #### Resend Verification Email
 
 - **Endpoint**: `POST /api/auth/send-verification-email`
+- **Description**: Resend the email verification link to a user.
 - **Request Body**:
   ```json
   {
@@ -344,12 +422,35 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Verification email resent successfully"
     }
     ```
-  - Error (400/404):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "User not found"
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Account is already verified"
+    }
+    ```
+
+---
 
 #### Reset Password
 
 - **Endpoint**: `POST /api/auth/reset-password`
+- **Description**: Request a password reset email.
 - **Request Body**:
   ```json
   {
@@ -364,12 +465,57 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "If an account with johndoe@example.com exists, you will receive a password reset email."
     }
     ```
-  - Error (400/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to process password reset request"
+    }
+    ```
+
+---
+
+#### verify a logged in user
+
+- **Endpoint**: `GET /api/me`
+- **Description**: Confirm if a user is authenticated.
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "User is authenticated",
+      "authenticated": true
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "No token provided",
+      "authenticated": false
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to validate token"
+    }
+    ```
+
+---
 
 #### Confirm Reset Token
 
 - **Endpoint**: `GET /api/auth/confirm-reset-token/:token`
+- **Description**: Confirm the validity of a password reset token.
 - **Response**:
   - Success (200):
     ```json
@@ -378,12 +524,27 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Token is valid"
     }
     ```
-  - Error (400/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Invalid or expired token"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to validate token"
+    }
+    ```
+
+---
 
 #### Change Password
 
 - **Endpoint**: `POST /api/auth/change-password`
+- **Description**: Change the password for the currently authenticated user. Requires authentication.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Request Body**:
@@ -402,24 +563,35 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Password changed successfully"
     }
     ```
-  - Error (400/401/404/500):  
-    See error format below.
-
-#### Verify a Logged In User
-
-- **Endpoint**: `GET /api/me`
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Response**:
-  - Success (200):
+  - Error (400):
     ```json
     {
-      "message": "User is authenticated",
-      "authenticated": true
+      "success": false,
+      "message": "Validation error",
+      "details": ["Error details here"]
     }
     ```
-  - Error (400/500):  
-    See error format below.
+  - Error (401):
+    ```json
+    {
+      "success": false,
+      "message": "Current password is incorrect"
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "success": false,
+      "message": "User not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Failed to change password"
+    }
+    ```
 
 ---
 
@@ -452,8 +624,22 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (400/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "error": "Error creating escrow",
+      "message": "Internal server error"
+    }
+    ```
+
+---
 
 #### Get All Escrows for User
 
@@ -475,8 +661,22 @@ Ensure the following environment variables are set in your `.env` file:
       ]
     }
     ```
-  - Error (404/500):  
-    See error format below.
+  - Error (404):
+    ```json
+    {
+      "message": "No escrows found for this user"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error retrieving escrows",
+      "error": "Internal server error"
+    }
+    ```
+
+---
 
 #### Get Escrow Details
 
@@ -493,8 +693,22 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (400/404/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error retrieving escrow details",
+      "error": "Internal server error"
+    }
+    ```
+
+---
 
 #### Update an Escrow
 
@@ -518,8 +732,28 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (400/404/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "message": "Escrow not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error updating escrow",
+      "error": "Internal server error"
+    }
+    ```
+
+---
 
 #### Accept an Escrow
 
@@ -542,8 +776,22 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (400/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error",
+      "details": ["Error details here"]
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error accepting escrow",
+      "error": "Internal server error"
+    }
+    ```
+
+---
 
 #### Reject an Escrow
 
@@ -567,77 +815,37 @@ Ensure the following environment variables are set in your `.env` file:
       }
     }
     ```
-  - Error (400/500):  
-    See error format below.
-
----
-
-### Payment
-
-#### Initiate a Payment
-
-- **Endpoint**: `POST /api/pay`
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Request Body**:
-  ```json
-  {
-    "escrowId": "64e1a7c2f1b2a2b3c4d5e6f7",
-    "method": "wallet"
-  }
-  ```
-- **Response**:
-  - Success (200):
+  - Error (400):
     ```json
     {
-      "success": true,
-      "paymentDetails": {
-        "reference": "PAY-123456789",
-        "amount": 5000,
-        "currency": "USD",
-        "status": "pending",
-        "paymentUrl": "https://paystack.com/pay/abc123"
-      }
+      "message": "Validation error",
+      "details": ["Error details here"]
     }
     ```
-  - Error (400/500):  
-    See error format below.
-
-#### Confirm a Payment
-
-- **Endpoint**: `GET /api/confirm-payment/:reference`
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Response**:
-  - Success (200):
+  - Error (500):
     ```json
     {
-      "success": true,
-      "confirmation": {
-        "status": "success",
-        "reference": "PAY-123456789",
-        "amount": 5000,
-        "currency": "USD"
-      }
+      "success": false,
+      "message": "Error rejecting escrow",
+      "error": "Internal server error"
     }
     ```
-  - Error (500):  
-    See error format below.
 
 ---
 
 ### Dispute
 
-#### File a Dispute
+#### Create a Dispute
 
-- **Endpoint**: `POST /api/dispute/file`
+- **Endpoint**: `POST /api/dispute-create`
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
     "escrowId": "12345",
-    "reason": "The terms of the agreement were not fulfilled"
+    "reason": "The terms of the agreement were not fulfilled",
+    "files": "https://example.com/evidence.jpg"
   }
   ```
 - **Response**:
@@ -647,202 +855,67 @@ Ensure the following environment variables are set in your `.env` file:
       "success": true,
       "message": "Dispute created successfully",
       "dispute": {
-        "id": "dispute123",
+        "_id": "disputeId",
+        "escrowId": "12345",
+        "reason": "The terms of the agreement were not fulfilled",
+        "files": "https://example.com/evidence.jpg",
         "status": "Pending"
       }
     }
     ```
-  - Error (400/500):  
-    See error format below.
-
-#### Get Dispute Details
-
-- **Endpoint**: `GET /api/dispute/:id`
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Response**:
-  - Success (200):
+  - Error (400):
     ```json
     {
-      "dispute": {
-        "id": "dispute123",
-        "status": "Pending",
-        "reason": "The terms of the agreement were not fulfilled"
-      }
+      "success": false,
+      "message": "\"escrowId\" is required"
     }
     ```
-  - Error (404/500):  
-    See error format below.
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "error": "Error creating dispute",
+      "message": "Internal server error"
+    }
+    ```
 
-#### Resolve a Dispute
+---
 
-- **Endpoint**: `PUT /api/dispute/resolve/:id`
+#### Close a Dispute
+
+- **Endpoint**: `POST /api/dispute-close`
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Request Body**:
   ```json
   {
-    "resolution": "Refund issued to buyer"
+    "disputeId": "dispute123"
   }
   ```
 - **Response**:
-  - Success (200):
+  - Not implemented yet:
     ```json
     {
-      "message": "Dispute resolved successfully",
-      "dispute": {
-        "id": "dispute123",
-        "status": "Resolved"
-      }
+      "success": false,
+      "message": "Not implemented yet"
     }
     ```
-  - Error (404/500):  
-    See error format below.
 
 ---
 
-### User Dashboard & Profile
+#### Get All Disputes for a User
 
-#### Get User Dashboard
-
-- **Endpoint**: `GET /api/dashboard`
+- **Endpoint**: `GET /api/disputes`
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Response**:
-  - Success (200):
+  - Not implemented yet:
     ```json
     {
-      "success": true,
-      "data": {
-        "_id": "userId",
-        "firstname": "John",
-        "lastname": "Doe",
-        "username": "johndoe",
-        "email": "johndoe@example.com",
-        "escrows": [
-          /* array of escrow objects */
-        ],
-        "transactions": [
-          /* array of transaction objects */
-        ],
-        "disputes": [
-          /* array of dispute objects */
-        ],
-        "wallet": {
-          /* wallet object */
-        }
-      }
+      "success": false,
+      "message": "Not implemented yet"
     }
     ```
-  - Error (404/500):  
-    See error format below.
-
-#### Get Profile Details
-
-- **Endpoint**: `GET /api/profile`
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "message": "Profile details fetched successfully",
-      "user": {
-        /* user profile object */
-      }
-    }
-    ```
-  - Error (500):  
-    See error format below.
-
-#### Update Profile
-
-- **Endpoint**: `PUT /api/profile`
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Request Body** (example):
-  ```json
-  {
-    "profilePicture": "https://cloudinary.com/image.jpg",
-    "phone": "+1234567890",
-    "street": "123 Main St",
-    "city": "Lagos",
-    "state": "Lagos",
-    "zip": "100001",
-    "country": "Nigeria",
-    "postalCode": "100001"
-  }
-  ```
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "message": "Profile updated successfully",
-      "data": {
-        /* updated user profile object */
-      }
-    }
-    ```
-  - Error (400/404/500):  
-    See error format below.
-
----
-
-### Transaction
-
-#### Get All Transactions for User
-
-- **Endpoint**: `GET /api/transactions`
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Query Parameters**:
-  - `page` (optional): Page number (default: 1)
-  - `limit` (optional): Results per page (default: 10)
-  - `status` (optional): Filter by status (e.g., "pending", "completed", "failed", "all")
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "data": [
-        {
-          "_id": "txnId1",
-          "reference": "TXN-123456",
-          "amount": 5000,
-          "type": "payment",
-          "status": "completed",
-          "createdAt": "2024-07-16T12:00:00.000Z"
-        }
-        // ...more transactions
-      ]
-    }
-    ```
-  - Error (500):  
-    See error format below.
-
-#### Get Transaction by Reference
-
-- **Endpoint**: `GET /api/transaction/:reference`
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "transaction": {
-        "_id": "txnId1",
-        "reference": "TXN-123456",
-        "amount": 5000,
-        "type": "payment",
-        "status": "completed",
-        "createdAt": "2024-07-16T12:00:00.000Z"
-      }
-    }
-    ```
-  - Error (400/401/500):  
-    See error format below.
 
 ---
 
@@ -851,6 +924,7 @@ Ensure the following environment variables are set in your `.env` file:
 #### Get Wallet Details
 
 - **Endpoint**: `GET /api/wallet`
+- **Description**: Retrieve wallet details for the authenticated user.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Response**:
@@ -868,12 +942,21 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Wallet details fetched successfully"
     }
     ```
-  - Error (500):  
-    See error format below.
+  - Error (500):
+    ```json
+    {
+      "statusCode": 500,
+      "success": false,
+      "error": "Internal server error"
+    }
+    ```
+
+---
 
 #### Add Funds to Wallet
 
 - **Endpoint**: `PUT /api/wallet/add-funds`
+- **Description**: Add funds to the authenticated user's wallet.
 - **Headers**:  
   `Authorization: Bearer <token>`
 - **Request Body**:
@@ -895,26 +978,261 @@ Ensure the following environment variables are set in your `.env` file:
       "message": "Add Funds Process initiated successfully"
     }
     ```
-  - Error (400/500):  
-    See error format below.
+  - Error (400):
+    ```json
+    {
+      "error": "\"amount\" must be a positive number"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "error": "Internal server error"
+    }
+    ```
 
 ---
 
-**Error Format Example**:
+#### Add Bank Details
 
-```json
-{
-  "message": "Validation error",
-  "details": ["Error details here"]
-}
-```
+- **Endpoint**: `POST /api/wallet/add-bank`
+- **Description**: Add bank details to the authenticated user's wallet.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "bankCode": "058",
+    "accountNumber": "1234567890"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "statusCode": 200,
+      "success": true,
+      "message": "Bank details added successfully",
+      "bankDetails": {
+        "bankCode": "058",
+        "accountNumber": "1234567890",
+        "bankName": "GTBank"
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "statusCode": 400,
+      "success": false,
+      "message": "Account number must be exactly 10 digits"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "statusCode": 500,
+      "success": false,
+      "error": "An error occurred",
+      "message": "Internal server error"
+    }
+    ```
 
-or
+---
 
-```json
-{
-  "success": false,
-  "message": "Error message",
-  "error": "Internal server error"
-}
-```
+#### Resolve Bank Details
+
+- **Endpoint**: `POST /api/wallet/resolve-bank`
+- **Description**: Resolve and verify bank account details.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "bankCode": "058",
+    "accountNumber": "1234567890"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "statusCode": 200,
+      "success": true,
+      "message": "Bank account resolved successfully",
+      "accountInfo": {
+        "accountName": "John Doe",
+        "bankCode": "058",
+        "accountNumber": "1234567890"
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "statusCode": 400,
+      "success": false,
+      "message": "Account number must be exactly 10 digits"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "statusCode": 500,
+      "success": false,
+      "message": "Internal server error"
+    }
+    ```
+
+---
+
+### Profile
+
+#### Get Profile Details
+
+- **Endpoint**: `GET /api/profile`
+- **Description**: Retrieve the authenticated user's profile details.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Profile details fetched successfully",
+      "user": {
+        "_id": "userId",
+        "firstname": "John",
+        "lastname": "Doe",
+        "username": "johndoe",
+        "email": "johndoe@example.com",
+        "profilePicture": "https://cloudinary.com/image.jpg",
+        "phone": "+1234567890",
+        "streetAddress": "123 Main St",
+        "city": "Lagos",
+        "state": "Lagos",
+        "zip": "100001",
+        "country": "Nigeria",
+        "postalCode": "100001"
+      }
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error fetching profile details",
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
+#### Update Profile
+
+- **Endpoint**: `PUT /api/profile`
+- **Description**: Update the authenticated user's profile details. Supports profile picture upload.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body** (as JSON or multipart/form-data for profilePicture):
+  ```json
+  {
+    "profilePicture": "https://cloudinary.com/image.jpg",
+    "phone": "+1234567890",
+    "streetAddress": "123 Main St",
+    "city": "Lagos",
+    "state": "Lagos",
+    "zip": "100001",
+    "country": "Nigeria",
+    "postalCode": "100001"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "message": "Profile updated successfully",
+      "data": {
+        "_id": "userId",
+        "firstname": "John",
+        "lastname": "Doe",
+        "username": "johndoe",
+        "email": "johndoe@example.com",
+        "profilePicture": "https://cloudinary.com/image.jpg",
+        "phone": "+1234567890",
+        "streetAddress": "123 Main St",
+        "city": "Lagos",
+        "state": "Lagos",
+        "zip": "100001",
+        "country": "Nigeria",
+        "postalCode": "100001"
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "message": "Validation error"
+    }
+    ```
+  - Error (404):
+    ```json
+    {
+      "message": "User not found"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error updating profile",
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
+#### Check Authentication
+
+- **Endpoint**: `GET /api/me`
+- **Description**: Confirm if a user is authenticated.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "User is authenticated",
+      "authenticated": true
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "message": "Error checking authentication",
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
+## Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Commit your changes and push them to your fork.
+4. Submit a pull request with a detailed description of your changes.
+
+## License
+
+This project is licensed under the MIT License.
+
+## Acknowledgments
+
+- **Node.js**: Backend runtime environment.
+- **Express.js**: Web framework for building APIs.
+- **MongoDB**: Database for storing application data.
+- **Joi**: Data validation library.
+- **Nodemailer**: Email sending service.

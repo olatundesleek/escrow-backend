@@ -894,7 +894,11 @@ Ensure the following environment variables are set in your `.env` file:
       "success": true,
       "message": "Dispute created successfully",
       "dispute": {
-        /* dispute object */
+        "_id": "disputeId",
+        "escrowId": "12345",
+        "reason": "The terms of the agreement were not fulfilled",
+        "files": "https://example.com/evidence.jpg",
+        "status": "Pending"
       }
     }
     ```
@@ -902,7 +906,7 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "success": false,
-      "message": "Validation error"
+      "message": "\"escrowId\" is required"
     }
     ```
   - Error (500):
@@ -949,411 +953,6 @@ Ensure the following environment variables are set in your `.env` file:
     {
       "success": false,
       "message": "Not implemented yet"
-    }
-    ```
-
----
-
-### User Dashboard
-
-#### Get User Dashboard
-
-- **Endpoint**: `GET /api/dashboard`
-- **Description**: Retrieve dashboard data for the authenticated user, including escrows, transactions, disputes, and wallet info.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "data": {
-        "_id": "userId",
-        "firstname": "John",
-        "lastname": "Doe",
-        "username": "johndoe",
-        "email": "johndoe@example.com",
-        "escrows": [
-          /* array of escrow objects */
-        ],
-        "transactions": [
-          /* array of transaction objects */
-        ],
-        "disputes": [
-          /* array of dispute objects */
-        ],
-        "wallet": {
-          /* wallet object */
-        }
-      }
-    }
-    ```
-  - Error (404):
-    ```json
-    {
-      "success": false,
-      "message": "User not found"
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "success": false,
-      "message": "Failed to fetch user data"
-    }
-    ```
-
----
-
-### Admin
-
-#### Get Admin Dashboard
-
-- **Endpoint**: `GET /api/admin/dashboard`
-- **Description**: Retrieve admin dashboard statistics. Requires admin authentication and appropriate admin role.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "message": "Dashboard details fetched successfully",
-      "dashboardDetails": {
-        /* dashboard data */
-      }
-    }
-    ```
-  - Error (400):
-    ```json
-    { "success": false, "message": "Validation error" }
-    ```
-  - Error (500):
-    ```json
-    { "message": "Error fetching dashboard details", "error": "Error message" }
-    ```
-
----
-
-#### Get All Escrows (Admin)
-
-- **Endpoint**: `GET /api/admin/escrows`
-- **Description**: Retrieve all escrows with optional filters. Requires admin authentication.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Query Parameters**:
-  - `status` (optional): Filter by escrow status (`pending`, `active`, `completed`, `disputed`)
-  - `page` (optional): Page number (default: 1)
-  - `limit` (optional): Results per page (default: 10)
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "message": "Escrow details fetched successfully",
-      "escrowDetails": {
-        /* escrows and pagination */
-      }
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "success": false,
-      "message": "Error fetching escrow details",
-      "error": "Error message"
-    }
-    ```
-
----
-
-#### Get Escrow Details (Admin)
-
-- **Endpoint**: `GET /api/admin/escrow/:id`
-- **Description**: Retrieve details for a specific escrow by ID. Requires admin authentication.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "message": "Escrow details retrieved successfully",
-      "escrow": {
-        /* escrow data */
-      }
-    }
-    ```
-  - Error (400):
-    ```json
-    {
-      "message": "Validation error",
-      "details": ["Error details here"]
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "message": "Error retrieving escrow details",
-      "error": "Error message"
-    }
-    ```
-
----
-
-#### Get All Transactions (Admin)
-
-- **Endpoint**: `GET /api/admin/transactions`
-- **Description**: Retrieve all transactions with pagination. Requires admin authentication.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Query Parameters**:
-  - `page` (optional): Page number (default: 1)
-  - `limit` (optional): Results per page (default: 10)
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "message": "Transaction details fetched successfully",
-      "transactionDetails": {
-        /* transaction data */
-      }
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "success": false,
-      "message": "Error fetching transaction details",
-      "error": "Error message"
-    }
-    ```
-
----
-
-#### Get All Users (Admin)
-
-- **Endpoint**: `GET /api/admin/users`
-- **Description**: Retrieve all users with pagination. Requires admin authentication.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Query Parameters**:
-  - `page` (optional): Page number (default: 1)
-  - `limit` (optional): Results per page (default: 10)
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "message": "User details fetched successfully",
-      "userDetails": {
-        /* user data */
-      }
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "success": false,
-      "message": "Error fetching user details",
-      "error": "Error message"
-    }
-    ```
-
----
-
-#### Get Single User (Admin)
-
-- **Endpoint**: `GET /api/admin/user/:username`
-- **Description**: Retrieve details for a single user by username. Requires admin authentication.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "message": "User details fetched successfully",
-      "userDetails": {
-        /* user data */
-      }
-    }
-    ```
-  - Error (400):
-    ```json
-    { "success": false, "message": "Validation error" }
-    ```
-  - Error (500):
-    ```json
-    {
-      "success": false,
-      "message": "Error fetching user details",
-      "error": "Error message"
-    }
-    ```
-
----
-
-#### Perform User Action (Admin)
-
-- **Endpoint**: `POST /api/admin/user-action`
-- **Description**: Perform an action (`activate`, `suspend`, `delete`) on a user. Requires admin authentication.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Request Body**:
-  ```json
-  {
-    "username": "johndoe",
-    "action": "activate"
-  }
-  ```
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "message": "User activated successfully"
-    }
-    ```
-  - Error (400):
-    ```json
-    { "success": false, "message": "Validation error" }
-    ```
-  - Error (500):
-    ```json
-    {
-      "success": false,
-      "message": "Error performing user action",
-      "error": "Error message"
-    }
-    ```
-
----
-
-#### Update Payment Settings (Admin)
-
-- **Endpoint**: `PUT /api/admin/escrowpaymentsetting`
-- **Description**: Update escrow payment settings (fee, merchant, currency). Requires super admin authentication.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Request Body**:
-  ```json
-  {
-    "fee": 100,
-    "merchant": "Paystack",
-    "currency": "USD"
-  }
-  ```
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "message": "Payment settings updated successfully",
-      "data": {
-        /* updated payment settings */
-      }
-    }
-    ```
-  - Error (400):
-    ```json
-    { "success": false, "message": "Validation error" }
-    ```
-  - Error (403):
-    ```json
-    {
-      "success": false,
-      "message": "Only super admins can update payment settings"
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "success": false,
-      "message": "Error updating payment settings",
-      "error": "Error message"
-    }
-    ```
-
----
-
-### Transaction
-
-#### Get All Transactions for User
-
-- **Endpoint**: `GET /api/transactions`
-- **Description**: Retrieve all transactions for the authenticated user.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Query Parameters**:
-  - `page` (optional): Page number (default: 1)
-  - `limit` (optional): Results per page (default: 10)
-  - `status` (optional): Filter by status (e.g., "pending", "completed", "failed", "all")
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "data": [
-        {
-          "_id": "txnId1",
-          "reference": "TXN-123456",
-          "amount": 5000,
-          "type": "payment",
-          "status": "completed",
-          "createdAt": "2024-07-16T12:00:00.000Z"
-        }
-        // ...more transactions
-      ]
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "message": "Internal server error"
-    }
-    ```
-
----
-
-#### Get Transaction by Reference
-
-- **Endpoint**: `GET /api/transaction/:reference`
-- **Description**: Retrieve a specific transaction by its reference for the authenticated user.
-- **Headers**:  
-  `Authorization: Bearer <token>`
-- **Response**:
-  - Success (200):
-    ```json
-    {
-      "success": true,
-      "transaction": {
-        "_id": "txnId1",
-        "reference": "TXN-123456",
-        "amount": 5000,
-        "type": "payment",
-        "status": "completed",
-        "createdAt": "2024-07-16T12:00:00.000Z"
-      }
-    }
-    ```
-  - Error (400):
-    ```json
-    {
-      "message": "Validation error",
-      "details": ["Reference is required"]
-    }
-    ```
-  - Error (401):
-    ```json
-    {
-      "message": "Unauthorized"
-    }
-    ```
-  - Error (500):
-    ```json
-    {
-      "success": false,
-      "message": "Internal server error"
     }
     ```
 
@@ -1428,6 +1027,99 @@ Ensure the following environment variables are set in your `.env` file:
     ```json
     {
       "error": "Internal server error"
+    }
+    ```
+
+---
+
+#### Add Bank Details
+
+- **Endpoint**: `POST /api/wallet/add-bank`
+- **Description**: Add bank details to the authenticated user's wallet.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "bankCode": "058",
+    "accountNumber": "1234567890"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "statusCode": 200,
+      "success": true,
+      "message": "Bank details added successfully",
+      "bankDetails": {
+        "bankCode": "058",
+        "accountNumber": "1234567890",
+        "bankName": "GTBank"
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "statusCode": 400,
+      "success": false,
+      "message": "Account number must be exactly 10 digits"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "statusCode": 500,
+      "success": false,
+      "error": "An error occurred",
+      "message": "Internal server error"
+    }
+    ```
+
+---
+
+#### Resolve Bank Details
+
+- **Endpoint**: `POST /api/wallet/resolve-bank`
+- **Description**: Resolve and verify bank account details.
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "bankCode": "058",
+    "accountNumber": "1234567890"
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "statusCode": 200,
+      "success": true,
+      "message": "Bank account resolved successfully",
+      "accountInfo": {
+        "accountName": "John Doe",
+        "bankCode": "058",
+        "accountNumber": "1234567890"
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "statusCode": 400,
+      "success": false,
+      "message": "Account number must be exactly 10 digits"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "statusCode": 500,
+      "success": false,
+      "message": "Internal server error"
     }
     ```
 

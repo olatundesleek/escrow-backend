@@ -20,6 +20,11 @@ const feeSchema = new mongoose.Schema({
     required: true,
     default: "NGN",
   },
+  status: {
+    type: String,
+    enum: ["enabled", "disabled"],
+    default: "enabled",
+  },
 });
 
 const PaymentSetting = mongoose.model("PaymentSetting", feeSchema);

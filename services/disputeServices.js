@@ -32,9 +32,12 @@ const createNewDispute = async (userId, escrowId, reason, files) => {
   escrow.status = "disputed";
   await escrow.save();
 
+  const complainee =
+    escrow.buyer.toString() === userId ? escrow.seller : escrow.buyer;
   const newDispute = new Dispute({
     escrowId,
-    userId,
+    complainant: userId,
+    complainee: complainee,
     reason,
     files,
     status: "open",

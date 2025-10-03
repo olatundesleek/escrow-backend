@@ -14,17 +14,22 @@ async function getDashboardData(userId) {
       .populate([
         { path: "escrows" },
         { path: "transactions" },
-        { path: "disputes" },
+
         { path: "wallet" },
       ]);
+
+    // const userChats = Chat.find({ participants: userId });
 
     if (!userDashboardData) {
       throw new Error("User not found");
     }
+    const userDisputes = await Dispute.find({
+      $or: [{ complainer: userId }, { complanee: userId }],
+    });
 
     return {
       success: true,
-      data: userDashboardData,
+      data: { userDashboardData, userDisputes },
     };
   } catch (error) {
     throw new Error("Failed to fetch user data");

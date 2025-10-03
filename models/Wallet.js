@@ -23,6 +23,28 @@ const walletSchema = new mongoose.Schema(
       type: String,
       default: "NGN",
     },
+    bankInfo: {
+      bankName: {
+        type: String,
+        default: null,
+      },
+      accountNumber: {
+        type: String,
+        default: null,
+      },
+      accountName: {
+        type: String,
+        default: null,
+      },
+      bankCode: {
+        type: String,
+        default: null,
+      },
+      recipientCode: {
+        type: String,
+        default: null,
+      },
+    },
   },
   {
     timestamps: true,

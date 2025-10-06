@@ -31,4 +31,57 @@ async function initiatePaystackPayment(paymentData) {
   }
 }
 
-module.exports = initiatePaystackPayment;
+const initializePaystackWithdrawal = async (withdrawalData) => {
+  console.log("Initiating Paystack withdrawal with data:", withdrawalData);
+
+  // Validate input
+  if (
+    !withdrawalData ||
+    !withdrawalData.amount ||
+    !withdrawalData.recipient ||
+    !withdrawalData.reference
+  ) {
+    const err = new Error(
+      "Invalid withdrawal data. Amount, recipient, and reference are required."
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const url = "https://api.paystack.co/transfer";
+
+  try {
+    // Ensure amount is in kobo (Paystack expects integer)
+    const payload = {
+      ...withdrawalData,
+      Amount:
+        withdrawalData.amount < 1000
+          ? withdrawalData.amount * 100 // if caller passed naira
+          : withdrawalData.amount, // if already in kobo
+    };
+
+    const { data } = await axios.post(url, payload, {
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    return data?.data || data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.data?.message ||
+      error.message ||
+      "Error initiating Paystack withdrawal";
+
+    const err = new Error(message);
+    err.statusCode = error.response?.status || 502;
+    throw err;
+  }
+};
+
+module.exports = {
+  initiatePaystackPayment,
+  initializePaystackWithdrawal,
+};

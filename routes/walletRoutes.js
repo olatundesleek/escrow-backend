@@ -5,6 +5,7 @@ const {
   addWalletFunds,
   addBankDetails,
   resolveBankDetails,
+  requestWithdrawal,
 } = require("../controllers/walletController");
 
 const { authMiddleware } = require("../middleware/authMiddleware");
@@ -13,6 +14,7 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 router.get("/wallet", authMiddleware, getWalletDetails);
 router.post("/wallet/add-bank", authMiddleware, addBankDetails);
 router.post("/wallet/resolve-bank", authMiddleware, resolveBankDetails);
+router.post("/wallet/request-withdrawal", authMiddleware, requestWithdrawal);
 router.put("/wallet/add-funds", authMiddleware, addWalletFunds);
 
 module.exports = router;

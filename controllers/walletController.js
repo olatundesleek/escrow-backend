@@ -3,6 +3,7 @@ const {
   addFundsToWallet,
   addBankService,
   resolveBankService,
+  requestWithdrawalService,
 } = require("../services/walletServices");
 const joi = require("joi");
 
@@ -23,6 +24,10 @@ const resolveBankSchema = joi.object({
     "string.length": "Account number must be exactly 10 digits",
     "string.pattern.base": "Account number must contain only digits",
   }),
+});
+
+const requestWithdrawalSchema = joi.object({
+  amount: joi.number().positive().required(),
 });
 
 const getWalletDetails = async (req, res) => {
@@ -152,9 +157,36 @@ const addBankDetails = async (req, res) => {
   }
 };
 
+const requestWithdrawal = async (req, res) => {
+  const { error } = requestWithdrawalSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+  const { amount } = req.body;
+
+  try {
+    const userId = req.userId;
+    const withdrawalResponse = await requestWithdrawalService(userId, amount);
+    return res.json({
+      statusCode: 200,
+      success: true,
+      message: "Withdrawal request processed successfully",
+      withdrawalResponse,
+    });
+  } catch (error) {
+    console.error("Error processing withdrawal request:", error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      error: "Error processing withdrawal request",
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   getWalletDetails,
   addWalletFunds,
   addBankDetails,
   resolveBankDetails,
+  requestWithdrawal,
 };

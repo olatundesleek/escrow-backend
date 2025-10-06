@@ -51,7 +51,6 @@ const userSchema = new mongoose.Schema(
     },
 
     escrows: [{ type: mongoose.Schema.Types.ObjectId, ref: "Escrow" }],
-    disputes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Dispute" }],
 
     transactions: [
       { type: mongoose.Schema.Types.ObjectId, ref: "Transaction" },

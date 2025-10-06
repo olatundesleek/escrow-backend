@@ -9,17 +9,18 @@ const PaymentSetting = require("../models/PaymentSetting");
 const PaystackBaseUrl = process.env.PAYSTACK_BASE_URL;
 const initiatePaystackPayment = require("./paymentgateway/paystack");
 const initiateFlutterwavePayment = require("./paymentgateway/flutterwave");
+const addTransaction = require("../utils/transaction");
 
-// function to add a new transaction
-const addTransaction = async (transactionData) => {
-  try {
-    const transaction = new Transaction(transactionData);
-    await transaction.save();
-    return transaction;
-  } catch (error) {
-    throw error;
-  }
-};
+// // function to add a new transaction
+// const addTransaction = async (transactionData) => {
+//   try {
+//     const transaction = new Transaction(transactionData);
+//     await transaction.save();
+//     return transaction;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
 
 async function lockUserFunds(userId, amount) {
   try {
@@ -177,7 +178,8 @@ async function initiateEscrowPayment(userId, escrowId, method) {
     } else if (method === "wallet") {
       try {
         console.log(totalAmount, "Total Amount to lock");
-        payment = await lockUserFunds(userId, totalAmount);
+        payment = await await wallet.lockFunds(amount);
+        // lockUserFunds(userId, totalAmount);
         transaction.status = "success";
 
         escrow.paymentStatus = "paid";

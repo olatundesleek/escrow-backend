@@ -60,7 +60,7 @@ const transactionSchema = new mongoose.Schema(
     },
     gateway: {
       type: String,
-      enum: ["paystack", "flutterwave", "stripe", "bank_transfer", "wallet"],
+      enum: ["Paystack", "Flutterwave", "Stripe", "Wallet"],
     },
   },
   {

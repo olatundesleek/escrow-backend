@@ -32,6 +32,8 @@ const escrowSchema = new mongoose.Schema(
       ],
       default: "pending",
     },
+    transactionReference: { type: String },
+    completionDate: { type: Date },
     paymentStatus: {
       type: String,
       enum: ["unpaid", "paid"],

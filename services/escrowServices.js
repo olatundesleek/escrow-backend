@@ -314,8 +314,9 @@ async function getEscrowById(escrowId, userId) {
   }
 }
 
-async function getAllEscrows(userId, { page, limit, status }) {
+async function getAllEscrows(userId, { page, limit, status, paymentStatus }) {
   try {
+    console.log("the payment status is", paymentStatus);
     const user = await User.findById(userId);
     if (!user) throw new Error("User not found");
 
@@ -327,6 +328,9 @@ async function getAllEscrows(userId, { page, limit, status }) {
     };
     if (status !== "all") {
       filter.status = status;
+    }
+    if (paymentStatus !== "all") {
+      filter.paymentStatus = paymentStatus;
     }
 
     // Count total escrows BEFORE pagination

@@ -20,4 +20,22 @@ async function initiateFlutterwavePayment(paymentData) {
   }
 }
 
-module.exports = initiateFlutterwavePayment;
+const initiateFlutterwaveWithdrawal = async (withdrawalData) => {
+  const url = "https://api.flutterwave.com/v3/transfers";
+  try {
+    const response = await axios.post(url, withdrawalData, {
+      headers: {
+        Authorization: `Bearer ${process.env.FLUTTERWAVE_SECRET_KEY}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error;
+  }
+};
+
+module.exports = {
+  initiateFlutterwavePayment,
+  initiateFlutterwaveWithdrawal,
+};

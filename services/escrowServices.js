@@ -64,7 +64,6 @@ async function createNewEscrow(
 
     await escrow.save({ session });
 
-    user.escrows.push(escrow._id);
     await user.save({ session });
 
     await session.commitTransaction();
@@ -167,7 +166,6 @@ async function acceptNewEscrow(userId, escrowId) {
 
     await escrow.save({ session });
 
-    user.escrows.push(escrow._id);
     await user.save({ session });
 
     await session.commitTransaction();

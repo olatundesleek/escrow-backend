@@ -78,24 +78,45 @@ walletSchema.methods.withdraw = function (amount) {
 };
 
 // Lock funds (reserve some funds)
-walletSchema.methods.lockFunds = function (amount) {
-  if (amount <= 0) throw new Error("Invalid lock amount");
-  const available = this.totalBalance - this.lockedBalance;
-  if (available < amount) {
-    const error = new Error("Insufficient available balance");
-    error.statusCode = 422;
-    throw error;
+walletSchema.methods.lockFunds = async function (amount) {
+  if (typeof amount !== "number" || amount <= 0) {
+    const err = new Error("Invalid lock amount");
+    err.statusCode = 400;
+    throw err;
   }
+
+  const available = this.totalBalance - this.lockedBalance;
+
+  if (available < amount) {
+    const err = new Error("Insufficient available balance");
+    err.statusCode = 422;
+    throw err;
+  }
+
   this.lockedBalance += amount;
-  return this.save();
+
+  await this.save();
+  return this;
 };
 
 // Unlock funds
-walletSchema.methods.unlockFunds = function (amount) {
-  if (amount <= 0) throw new Error("Invalid unlock amount");
-  if (this.lockedBalance < amount) throw new Error("Insufficient locked funds");
+walletSchema.methods.unlockFunds = async function (amount) {
+  if (typeof amount !== "number" || amount <= 0) {
+    const err = new Error("Invalid unlock amount");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (this.lockedBalance < amount) {
+    const err = new Error("Insufficient locked funds");
+    err.statusCode = 422;
+    throw err;
+  }
+
   this.lockedBalance -= amount;
-  return this.save();
+
+  await this.save();
+  return this;
 };
 
 // Deduct locked funds (e.g., complete escrow)

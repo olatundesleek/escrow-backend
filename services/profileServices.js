@@ -11,12 +11,7 @@ async function getDashboardData(userId) {
   try {
     const userDashboardData = await User.findById(userId)
       .select("-password")
-      .populate([
-        { path: "escrows" },
-        { path: "transactions" },
-
-        { path: "wallet" },
-      ]);
+      .populate([{ path: "wallet" }]);
 
     // const userChats = Chat.find({ participants: userId });
 
@@ -27,9 +22,15 @@ async function getDashboardData(userId) {
       $or: [{ complainer: userId }, { complanee: userId }],
     });
 
+    const userEscrows = await Escrow.find({
+      $or: [{ buyer: userId }, { seller: userId }],
+    });
+
+    const userTransactions = await Transaction.find({ user: userId });
+
     return {
       success: true,
-      data: { userDashboardData, userDisputes },
+      data: { userDashboardData, userDisputes, userEscrows, userTransactions },
     };
   } catch (error) {
     throw new Error("Failed to fetch user data");

@@ -50,12 +50,6 @@ const userSchema = new mongoose.Schema(
       ref: "Wallet",
     },
 
-    escrows: [{ type: mongoose.Schema.Types.ObjectId, ref: "Escrow" }],
-
-    transactions: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "Transaction" },
-    ],
-
     createdAt: { type: Date, default: Date.now },
   },
   {

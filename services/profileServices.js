@@ -19,7 +19,7 @@ async function getDashboardData(userId) {
       throw new Error("User not found");
     }
     const userDisputes = await Dispute.find({
-      $or: [{ complainer: userId }, { complanee: userId }],
+      $or: [{ complainant: userId }, { complanee: userId }],
     });
 
     const userEscrows = await Escrow.find({

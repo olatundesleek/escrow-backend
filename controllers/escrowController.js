@@ -90,6 +90,8 @@ const getEscrows = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const paymentStatus = req.query.paymentStatus || "all";
+    console.log("payment from query is", req.query.paymentStatus);
     const status = req.query.status || "all";
 
     // Delegate logic to service
@@ -97,9 +99,10 @@ const getEscrows = async (req, res) => {
       page,
       limit,
       status,
+      paymentStatus,
     });
 
-    console.log({ page, limit, status });
+    console.log({ page, limit, status, paymentStatus });
 
     if (!data || data.length === 0) {
       return res.status(404).json({

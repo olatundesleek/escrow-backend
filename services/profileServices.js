@@ -2,7 +2,7 @@ const User = require("../models/User");
 const Escrow = require("../models/Escrow");
 const Transaction = require("../models/Transaction");
 const Dispute = require("../models/Dispute");
-const Wallet = require("../models/Wallet");
+// const Wallet = require("../models/Wallet");
 // const Chat = require("../models/Chat");
 const bcrypt = require("bcrypt");
 
@@ -23,7 +23,10 @@ async function getDashboardData(userId) {
     });
 
     const userEscrows = await Escrow.find({
-      $or: [{ buyer: userId }, { seller: userId }],
+      $or: [
+        { creatorEmail: userDashboardData.email },
+        { counterpartyEmail: userDashboardData.email },
+      ],
     });
 
     const userTransactions = await Transaction.find({ user: userId });

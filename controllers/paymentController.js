@@ -137,7 +137,7 @@ const updatePaymentStatus = async (req, res) => {
         console.log("Processing wallet withdrawal");
         await Wallet.findOneAndUpdate(
           { user: metadata.userId },
-          { $inc: { totalBalance: -amount } },
+          { $inc: { totalBalance: -metadata.amount } },
           { session }
         );
         console.log("Wallet balance updated successfully");

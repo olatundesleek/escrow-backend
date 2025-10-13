@@ -9,7 +9,7 @@ const feeSchema = new mongoose.Schema({
 
   merchant: {
     type: String,
-    enum: ["Paystack", "Flutterwave", "Bank Transfer"],
+    enum: ["Paystack", "Flutterwave", "Transfer"],
     required: true,
     default: "Paystack",
   },

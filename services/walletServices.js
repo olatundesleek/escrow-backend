@@ -250,6 +250,7 @@ async function requestWithdrawalService(userId, amount) {
         amount,
         recipient: wallet.bankInfo.recipientCode,
         reference,
+        metadata: { userEmail: user.email, amount },
       });
 
       transaction.status = "pending";
@@ -273,9 +274,6 @@ async function requestWithdrawalService(userId, amount) {
   throw createError("Unsupported withdrawal gateway", 400);
 }
 
-// -------------------------------------------------------------
-// 🧩 Exports
-// -------------------------------------------------------------
 module.exports = {
   getWalletDetailsService,
   addFundsToWallet,

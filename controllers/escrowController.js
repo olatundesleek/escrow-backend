@@ -6,6 +6,7 @@ const {
   rejectNewEscrow,
   getEscrowById,
   getAllEscrows,
+  completeEscrowTradeService,
 } = require("../services/escrowServices.js");
 const io = require("../server").io; // Import the io instance from server.js
 // Joi schemas
@@ -36,6 +37,10 @@ const rejectEscrowSchema = Joi.object({
 
 const getEscrowDetailsSchema = Joi.object({
   id: Joi.string().required(), // Assuming ID is a string, adjust if using ObjectId
+});
+
+const completeTradeSchema = Joi.object({
+  escrowId: Joi.string().required(),
 });
 
 // Create a new escrow transaction
@@ -267,6 +272,34 @@ const getEscrowDetails = async (req, res) => {
   }
 };
 
+const completeTrade = async (req, res) => {
+  const { error } = completeTradeSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({
+      message: "Validation error",
+      details: error.details.map((detail) => detail.message),
+    });
+  }
+
+  try {
+    const userId = req.userId;
+    const { escrowId } = req.body;
+
+    const escrow = await completeEscrowTradeService(userId, escrowId);
+
+    return res.status(200).json({
+      message: "Trade completed successfully",
+      escrow,
+    });
+  } catch (err) {
+    console.error("Complete Trade Error:", err);
+    return res.status(500).json({
+      message: err.message || "Internal server error",
+      error: "Error completing trade",
+    });
+  }
+};
+
 module.exports = {
   createEscrow,
   getEscrows,
@@ -274,4 +307,5 @@ module.exports = {
   getEscrowDetails,
   acceptEscrow,
   rejectEscrow,
+  completeTrade,
 };

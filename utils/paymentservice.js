@@ -7,7 +7,7 @@ const Escrow = require("../models/Escrow");
 const Transaction = require("../models/Transaction");
 const PaymentSetting = require("../models/PaymentSetting");
 const PaystackBaseUrl = process.env.PAYSTACK_BASE_URL;
-const initiatePaystackPayment = require("./paymentgateway/paystack");
+const { initiatePaystackPayment } = require("./paymentgateway/paystack");
 const initiateFlutterwavePayment = require("./paymentgateway/flutterwave");
 const addTransaction = require("../utils/transaction");
 
@@ -22,30 +22,17 @@ const addTransaction = require("../utils/transaction");
 //   }
 // };
 
-async function lockUserFunds(userId, amount) {
-  try {
-    const wallet = await Wallet.findOne({ user: userId });
-    if (!wallet) {
-      const error = new Error("Wallet not found");
-      error.statusCode = 404;
-      throw error;
-    }
-    console.log("Locking funds in wallet:", wallet._id);
-    // Call the method you defined
-    await wallet.lockFunds(amount);
-
-    return wallet; // or return a success message
-  } catch (error) {
-    throw error;
-  }
-}
-
 async function initiateEscrowPayment(userId, escrowId, method) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
-  try {
-    // Load required records
+  const handleError = (message, statusCode) => {
+    const err = new Error(message);
+    err.statusCode = statusCode || 500;
+    throw err;
+  };
+
+  const checkRequiredRecords = async () => {
     const [escrow, user, wallet, setting] = await Promise.all([
       Escrow.findById(escrowId),
       User.findById(userId),
@@ -53,65 +40,46 @@ async function initiateEscrowPayment(userId, escrowId, method) {
       PaymentSetting.findOne(),
     ]);
 
-    // Manual error throwing with statusCode
-    if (!escrow) {
-      const err = new Error("Escrow not found");
-      err.statusCode = 404;
-      throw err;
-    }
-    if (!user) {
-      const err = new Error("User not found");
-      err.statusCode = 404;
-      throw err;
-    }
-    if (!wallet) {
-      const err = new Error("Wallet not found");
-      err.statusCode = 404;
-      throw err;
-    }
-    if (!setting) {
-      const err = new Error("Payment settings not found");
-      err.statusCode = 500;
-      throw err;
-    }
+    if (!escrow) handleError("Escrow not found", 404);
+    if (!user) handleError("User not found", 404);
+    if (!wallet) handleError("Wallet not found", 404);
+    if (!setting) handleError("Payment settings not found", 500);
 
+    return { escrow, user, wallet, setting };
+  };
+
+  const checkEscrowStatus = (escrow) => {
     if (escrow.status !== "active") {
-      const err = new Error(
-        "Escrow is not active. Accept the escrow before making a payment."
+      handleError(
+        "Escrow is not active. Accept the escrow before making a payment.",
+        400
       );
-      err.statusCode = 400;
-      throw err;
     }
-
     if (userId.toString() !== escrow.buyer.toString()) {
-      const err = new Error("You are not authorized to make this payment");
-      err.statusCode = 403;
-      throw err;
+      handleError("You are not authorized to make this payment", 403);
     }
-
     if (escrow.paymentStatus !== "unpaid") {
-      const err = new Error("Payment has already been made for this escrow");
-      err.statusCode = 409;
-      throw err;
+      handleError("Payment has already been made for this escrow", 409);
     }
+  };
+
+  try {
+    const { escrow, user, wallet, setting } = await checkRequiredRecords();
+    checkEscrowStatus(escrow);
 
     // Fee calculation
-    let feePercentage = 0;
-    switch (escrow.escrowfeepayment) {
-      case "buyer":
-        feePercentage = setting.fee;
-        break;
-      case "split":
-        feePercentage = setting.fee / 2;
-        break;
-      case "seller":
-        feePercentage = 0;
-        break;
-      default:
-        const err = new Error("Invalid escrow fee payment type");
-        err.statusCode = 400;
-        throw err;
-    }
+    const feePercentage = (() => {
+      switch (escrow.escrowfeepayment) {
+        case "buyer":
+          return setting.fee;
+        case "split":
+          return setting.fee / 2;
+        case "seller":
+          return 0;
+        default:
+          handleError("Invalid escrow fee payment type", 400);
+      }
+    })();
 
     const feeValue = Math.round(escrow.amount * (feePercentage / 100));
     const totalAmount = escrow.amount + feeValue;
@@ -122,12 +90,11 @@ async function initiateEscrowPayment(userId, escrowId, method) {
     const paymentData = {
       reference,
       email: escrow.counterpartyEmail,
-
       amount: totalAmountInKobo,
       FeeCurrency: setting.currency,
       metadata: {
         type: "escrowPayment",
-        reference: reference,
+        reference,
         escrowId: escrow._id,
       },
     };
@@ -156,49 +123,47 @@ async function initiateEscrowPayment(userId, escrowId, method) {
     let transaction = await addTransaction(transactionData);
     let payment;
 
+    const paymentGateways = {
+      Paystack: async () => {
+        console.log("Using Paystack for payment");
+        payment = await initiatePaystackPayment(paymentData);
+        transaction.status = "pending";
+        transaction.merchant = "Paystack";
+        escrow.paidWith = "paymentgateway";
+        return payment;
+      },
+      Flutterwave: async () => {
+        payment = await initiateFlutterwavePayment(paymentData);
+        transaction.status = "pending";
+        transaction.merchant = "Flutterwave";
+      },
+    };
+
     if (method === "paymentgateway") {
-      switch (setting.merchant) {
-        case "paystack":
-          console.log("Using Paystack for payment");
-          payment = await initiatePaystackPayment(paymentData);
-          transaction.status = "pending";
-          transaction.merchant = "paystack";
-          return payment; // Return payment response directly
-          break;
-        case "flutterwave":
-          payment = await initiateFlutterwavePayment(paymentData);
-          transaction.status = "pending";
-          transaction.merchant = "flutterwave";
-          break;
-        default:
-          const err = new Error("Unsupported payment gateway");
-          err.statusCode = 400;
-          throw err;
+      if (!paymentGateways[setting.merchant]) {
+        handleError("Unsupported payment gateway", 400);
       }
+      payment = await paymentGateways[setting.merchant]();
     } else if (method === "wallet") {
       try {
         console.log(totalAmount, "Total Amount to lock");
-        payment = await await wallet.lockFunds(amount);
-        // lockUserFunds(userId, totalAmount);
+        payment = await wallet.lockFunds(totalAmount);
         transaction.status = "success";
 
         escrow.paymentStatus = "paid";
         escrow.paidWith = "wallet";
-        await escrow.save({ session }); // ✅ Save escrow changes
+        await escrow.save({ session });
       } catch (err) {
         transaction.status = "failed";
         await transaction.save({ session });
         throw err;
       }
     } else {
-      const err = new Error("Invalid payment method");
-      err.statusCode = 400;
-      throw err;
+      handleError("Invalid payment method", 400);
     }
 
     await transaction.save({ session });
     await session.commitTransaction();
-    session.endSession();
 
     return {
       transactionId: transaction._id,
@@ -211,6 +176,8 @@ async function initiateEscrowPayment(userId, escrowId, method) {
     session.endSession();
     if (!error.statusCode) error.statusCode = 500;
     throw error;
+  } finally {
+    session.endSession();
   }
 }
 

@@ -65,9 +65,9 @@ walletSchema.methods.deposit = function (amount) {
 };
 
 // Withdraw funds (subtract from total balance if available)
-walletSchema.methods.withdraw = function (amount) {
+walletSchema.methods.withdrawTotalBalance = function (amount) {
   if (amount <= 0) throw new Error("Invalid withdrawal amount");
-  const available = this.totalBalance - this.lockedBalance;
+  const available = this.totalBalance;
   if (available < amount) {
     const error = new Error("Insufficient available balance");
     error.statusCode = 422;

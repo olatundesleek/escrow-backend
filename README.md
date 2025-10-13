@@ -872,6 +872,63 @@ Ensure the following environment variables are set in your `.env` file:
 
 ---
 
+#### Complete Trade
+
+- **Endpoint**: `POST /api/escrow/complete`
+- **Description**: Mark an escrow trade as complete. Requires authentication (both parties or authorized user per business rules).
+- **Headers**:  
+  `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "escrowId": "64e1a7c2f1b2a2b3c4d5e6f7",
+    "confirmationNotes": "Buyer confirmed delivery and released funds",
+    "evidence": ["https://example.com/proof1.jpg"] // optional
+  }
+  ```
+- **Response**:
+  - Success (200):
+    ```json
+    {
+      "success": true,
+      "message": "Trade completed successfully",
+      "escrow": {
+        "_id": "64e1a7c2f1b2a2b3c4d5e6f7",
+        "status": "completed",
+        "completedAt": "2025-10-13T12:34:56.789Z",
+        "amount": 5000,
+        "creator": { "username": "seller" },
+        "counterparty": { "username": "buyer" }
+        // ...other escrow fields...
+      }
+    }
+    ```
+  - Error (400):
+    ```json
+    {
+      "success": false,
+      "message": "Validation error",
+      "details": ["\"escrowId\" is required"]
+    }
+    ```
+  - Error (401):
+    ```json
+    {
+      "success": false,
+      "message": "Unauthorized"
+    }
+    ```
+  - Error (500):
+    ```json
+    {
+      "success": false,
+      "message": "Error completing trade",
+      "error": "Internal server error"
+    }
+    ```
+
+---
+
 ### Dispute
 
 #### Create a Dispute

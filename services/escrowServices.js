@@ -363,10 +363,62 @@ async function getAllEscrows(userId, { page, limit, status, paymentStatus }) {
   }
 }
 
+const completeTradeService = async (userId, escrowId) => {
+  if (!mongoose.Types.ObjectId.isValid(escrowId)) {
+    throw new Error("Invalid escrow ID format");
+  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const escrow = await Escrow.findById(escrowId).session(session);
+    if (!escrow) throw new Error("Escrow not found");
+    if (escrow.status !== "active") {
+      throw new Error("Only active escrows can be completed");
+    }
+    // only buyer or seller can complete the trade
+    if (userId !== escrow.buyer.toString()) {
+      throw new Error("only Buyer can Complete Trade");
+    }
+
+    if (escrow.paidWith === "wallet") {
+      // release locked funds from buyers wallet and add to seller's total balance
+      const buyerWallet = await Wallet.findOne({ user: escrow.buyer }).session(
+        session
+      );
+      const sellerWallet = await Wallet.findOne({
+        user: escrow.seller,
+      }).session(session);
+
+      // release locked funds from buyers wallet and add to seller's total balance
+      if (buyerWallet) {
+        buyerWallet.unlockFunds(escrow.amount);
+        buyerWallet.withdrawTotalBalance(escrow.amount);
+      }
+      await buyerWallet.save({ session });
+      if (sellerWallet) {
+        sellerWallet.deposit(escrow.amount);
+      }
+      await sellerWallet.save({ session });
+    }
+    // Complete the trade
+    escrow.status = "completed";
+    await escrow.save({ session });
+    await session.commitTransaction();
+    return escrow;
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Error in completeTradeService:", error.message);
+    throw new Error("Failed to complete trade: " + error.message);
+  } finally {
+    session.endSession();
+  }
+};
+
 module.exports = {
   createNewEscrow,
   acceptNewEscrow,
   rejectNewEscrow,
   getEscrowById,
   getAllEscrows,
+  completeTradeService,
 };

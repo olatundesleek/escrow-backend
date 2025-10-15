@@ -109,7 +109,14 @@ const getEscrows = async (req, res) => {
 
     console.log({ page, limit, status, paymentStatus });
 
-    if (!data || data.length === 0) {
+    if (data.length === 0) {
+      return res.status(200).json({
+        data,
+        success: false,
+        message: "No escrows found",
+      });
+    }
+    if (!data) {
       return res.status(404).json({
         success: false,
         message: "No escrows found for this user",

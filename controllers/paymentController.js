@@ -200,6 +200,28 @@ const confirmPayment = async (req, res) => {
   }
 };
 
+const updateKycStatus = async (req, res) => {
+  try {
+    // Process the KYC status update here
+    console.log("KYC webhook received:", req.body);
+
+    // Extract relevant information from the request body
+    const { userId, status } = req.body;
+
+    // Update the KYC status in the database
+    await KYC.updateOne({ userId }, { status });
+
+    res
+      .status(200)
+      .json({ success: true, message: "KYC status updated successfully" });
+  } catch (error) {
+    console.error("Error updating KYC status:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to update KYC status" });
+  }
+};
+
 module.exports = {
   initiatePayment,
   confirmPayment,

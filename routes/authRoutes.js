@@ -34,6 +34,8 @@ router.get("/confirm-reset-token/:token", confirmResetToken);
 // Route for email verfification
 router.get("/verify-email/:token", verifyEmail);
 
+
+
 // Route for token verification
 // router.get('/verify', authController.verifyToken);
 

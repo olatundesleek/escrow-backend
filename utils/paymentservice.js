@@ -170,6 +170,7 @@ async function initiateEscrowPayment(userId, escrowId, method) {
       escrowId: escrow._id,
       amount: totalAmount,
       status: transaction.status,
+      data: payment.data,
     };
   } catch (error) {
     await session.abortTransaction();

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { updatePaymentStatus } = require("../controllers/paymentController");
 
-const { updateKycStatus } = require("../controllers/kycController");
+const updateKycStatus = require("../controllers/kycController");
 
 // route for paystack webhook
 router.post(

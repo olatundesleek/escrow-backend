@@ -1,12 +1,13 @@
-import crypto from "crypto";
-import mongoose from "mongoose";
-import User from "../models/User.js"; // adjust path to your model
+// import crypto from "crypto";
+const crypto = require("crypto");
+const mongoose = require("mongoose");
+const User = require("../models/User.js");
 
 const QOREID_WEBHOOK_SECRET = process.env.QOREID_WEBHOOK_SECRET;
 
 // Update KYC Status via QoreID Webhook
 
-export const updateKycStatus = async (req, res) => {
+const updateKycStatus = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -106,3 +107,5 @@ export const updateKycStatus = async (req, res) => {
     });
   }
 };
+
+module.exports = updateKycStatus;

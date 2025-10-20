@@ -25,6 +25,7 @@ async function initiatePaystackPayment(paymentData) {
         "Content-Type": "application/json",
       },
     });
+    console.log("Paystack initialization response:", response.data);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : error;
